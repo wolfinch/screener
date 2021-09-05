@@ -21,7 +21,7 @@
 
 import sys
 import os
-sys.path.append(os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), "../pkgs"))
+sys.path.append(os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), "../Wolfinch/pkgs"))
 
 import time
 import traceback
