@@ -55,11 +55,12 @@ def screener_init():
     # seed random
     random.seed()
 
+    # print ("config: %s"%(ScreenerConfig))
     notifier = ScreenerConfig.get("notifier")
     if notifier != None:
         notifiers.init(notifier)
         
-    register_screeners(ScreenerConfig.get("screeners"))
+    register_screeners(ScreenerConfig.get("strategies"))
     
     # setup ui if required
     if ScreenerConfig["ui"]["enabled"]:
@@ -139,7 +140,8 @@ def get_all_screener_data():
         filtered_list[scrn_obj.name] = scrn_obj.get_screened()
     return filtered_list
 
-all_tickers = {"ALL":[], "MEGACAP":[], "GT50M": [], "LT50M": [], "OTC": []}
+all_tickers = {"ALL":[], "MEGACAP":[], "GT50M": [], "LT50M": [], "OTC": [],
+               "ALL500K":[], "MEGACAP500K":[], "GT50M500K": [], "LT50M500K": [], "OTC500K": [], "SPAC": []}
 def get_all_tickers ():
     global ticker_import_time, all_tickers
     log.debug ("get all tickers")

@@ -17,18 +17,31 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Wolfinch.  If not, see <https://www.gnu.org/licenses/>.
 
+import importlib
 
-from .volume_spike import VOL_SPIKE
+# from .vol_spike import VOL_SPIKE
 
-def Configure (cfg):
+def import_strat(cls_name):
+    strat_path = "."+cls_name.lower()
+    try:
+        mod = importlib.import_module(strat_path, package="strategies")
+        return getattr(mod, cls_name.upper(), None)
+    except ModuleNotFoundError as e:
+        print("error loading module - %s"%(str(e)))
+        raise e
+
+def Configure (cfg_l):
     scrnr_list = []
     
-    scrnr_list.append(VOL_SPIKE("VOL-SPIKE-MEGACAP", ticker_kind="MEGACAP500K", vol_multiplier=2))
+    print (cfg_l)
+    for cfg in cfg_l:
+        strat = import_strat (cfg["strategy"])
+        scrnr_list.append(strat(**cfg))
 #     scrnr_list.append(VOL_SPIKE("VOL-SPIKE-MEGACAP1", ticker_kind="MEGACAP", vol_multiplier=2))
-    
 #     scrnr_list.append(VOL_SPIKE("VOL-SPIKE-ALL", ticker_kind="ALL"))
-    scrnr_list.append(VOL_SPIKE("VOL-SPIKE-GT50M", ticker_kind="GT50M500K", vol_multiplier=3))
-    scrnr_list.append(VOL_SPIKE("VOL-SPIKE-LT50M", ticker_kind="LT50M500K", vol_multiplier=4))
+    # scrnr_list.append(VOL_SPIKE("VOL-SPIKE-GT50M", ticker_kind="GT50M500K", vol_multiplier=3))
+    # scrnr_list.append(VOL_SPIKE("VOL-SPIKE-LT50M", ticker_kind="LT50M500K", vol_multiplier=4))
+    exit(1)
     return scrnr_list
 
 #EOF

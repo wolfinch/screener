@@ -30,8 +30,8 @@ log = getLogger("VOL_SPIKE")
 log.setLevel(log.DEBUG)
 
 class VOL_SPIKE(Screener):
-    def __init__(self, name="VOL_SPIKE", ticker_kind="ALL", interval=300, vol_multiplier=2):
-        log.info ("init: name: %s ticker_kind: %s interval: %d"%(name, ticker_kind, interval))
+    def __init__(self, name="VOL_SPIKE", ticker_kind="ALL", interval=300, vol_multiplier=2, **kwarg):
+        log.info ("init: name: %s ticker_kind: %s interval: %d vol_multiplier: %d"%(name, ticker_kind, interval, vol_multiplier))
         super().__init__(name, ticker_kind, interval)
         self.YF = yf.Yahoofin ()
         self.vol_multiplier = vol_multiplier
