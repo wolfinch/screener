@@ -41,7 +41,6 @@ def Configure (cfg_l):
 #     scrnr_list.append(VOL_SPIKE("VOL-SPIKE-ALL", ticker_kind="ALL"))
     # scrnr_list.append(VOL_SPIKE("VOL-SPIKE-GT50M", ticker_kind="GT50M500K", vol_multiplier=3))
     # scrnr_list.append(VOL_SPIKE("VOL-SPIKE-LT50M", ticker_kind="LT50M500K", vol_multiplier=4))
-    exit(1)
     return scrnr_list
 
 #EOF
