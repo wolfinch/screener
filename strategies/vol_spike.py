@@ -91,8 +91,9 @@ class VOL_SPIKE(Screener):
                     
                     self.filtered_list [sym] = fs
                     if self.notify:
-                        notify_msg = "%s price %s(%s%%) vol %s%%"%(fs["symbol"], fs["last_price"], fs["price_change"],
-                                                                           fs["vol_change"])
+                        notify_msg = {"symbol": fs["symbol"],
+                                      "price": "%s(%s%%)"%(fs["last_price"], fs["price_change"]),
+                                      "vol": "%s%%"%(fs["vol_change"])}
                         notifiers.notify(self.notify, self.name, notify_msg)
                 else:
                     fs["cur_price_change"] = round(rmcp, 2)
