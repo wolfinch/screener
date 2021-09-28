@@ -58,8 +58,9 @@ def screener_init():
     # print ("config: %s"%(ScreenerConfig))
     notifier = ScreenerConfig.get("notifier")
     if notifier != None:
-        notifiers.init(notifier)
-        
+        if False == notifiers.init(notifier):
+            log.critical("notifier init failed")
+            return False
     register_screeners(ScreenerConfig.get("strategies"))
     
     # setup ui if required
