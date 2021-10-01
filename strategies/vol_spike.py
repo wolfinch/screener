@@ -35,7 +35,7 @@ class VOL_SPIKE(Screener):
         super().__init__(name, ticker_kind, interval)
         self.YF = yf.Yahoofin ()
         self.vol_multiplier = vol_multiplier
-        self.notify = notify
+        self.notify_kind = notify
         self.filtered_list = {} #li
     def update(self, sym_list, ticker_stats_g):
         #update stats only during ~12hrs, to cover pre,open,ah (5AM-5PM PST, 12-00UTC)
@@ -90,11 +90,11 @@ class VOL_SPIKE(Screener):
                     log.info ('new sym found by screener: %s info:  %s'%(sym, fs))
                     
                     self.filtered_list [sym] = fs
-                    if self.notify:
+                    if self.notify_kind:
                         notify_msg = {"symbol": fs["symbol"],
                                       "price": "%s(%s%%)"%(fs["last_price"], fs["price_change"]),
                                       "vol": "%s%%"%(fs["vol_change"])}
-                        notifiers.notify(self.notify, self.name, notify_msg)
+                        notifiers.notify(self.notify_kind, self.name, notify_msg)
                 else:
                     fs["cur_price_change"] = round(rmcp, 2)
                     fs["cur_vol_change"] = round(100*(rmv - adv10)/adv10, 1)

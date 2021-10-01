@@ -45,35 +45,37 @@ def post_url(url, data):
 #         }
 #         Session.headers = headers
         log.info("initialized Wolfinch Session")
-    log.debug ("post url: %s"%(url))
+    log.info ("post url: %s"%(url))
     r = Session.post(url, data=data, timeout=15)
     if r.status_code == requests.codes.ok:
-        return r.json()
+        return True
     else:
         log.error ("bad response code: %s resp: %s"%(str(r.status_code), r))
-        return None
+        return False
 
-WOLFINCH_ADD_MARKET_API = "/api/update_market"
+WOLFINCH_ADD_MARKET_API = "api/update_market"
 class Notifier():
-    def __init__(self, url=None, exchange=None, secret=None, **kwarg):
-        self.bot_url = url
+    def __init__(self, bot="", exchange="", token="", secret="", **kwarg):
+        self.bot_url = bot
         self.exchange = exchange
         self.secret = secret
-        log.info("configured Wolfinch Notifier url: %s exchange %s secret: %s"%(url, exchange, secret))
-    def send_message (self, msg):
-        log.debug ("msg: %s"%(msg))
+        self.token = token
+        log.info("configured Wolfinch Notifier url: %s exchange %s token: %s secret: %s"%(bot, exchange, token, secret))
+    def send_message (self, name, msg):
+        log.debug ("msg: %s:%s"%(name, msg))
+        if name == None or msg == None:
+            return
         data = {
             "cmd" : "add",
             "req_code" : self.secret,
             "exch_name" : self.exchange,
             "product" : msg.get("symbol"),
         }
-        URI = '%s%s' % (self.bot_url, WOLFINCH_ADD_MARKET_API)
+        URI = '%s/%s/%s' % (self.bot_url, self.token, WOLFINCH_ADD_MARKET_API)
         i = 0
         while i < 2:
             try:
-                data = post_url (URI, data)
-                if data:
+                if True == post_url (URI, data):
                     log.debug("send msg success %s"%(data))
                     return True
                 else:
@@ -95,8 +97,8 @@ if __name__ == '__main__':
     try:
         log.info("Starting Wolfinch")
         print("Starting Wolfinch")
-        wfinch = Wolfinch("http://localhost:8080", "robinhood", "1234")
-        status = wfinch.send_message({"symbol":"TSLA"})
+        wfinch = Notifier(bot="http://localhost:8080", exchange="robinhood", token="2345", secret="1234")
+        status = wfinch.send_message("wfinch", {"symbol":"NIO"})
         print ("send msg status: %s"%(status))
     except(KeyboardInterrupt, SystemExit):
         sys.exit()

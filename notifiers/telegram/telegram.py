@@ -54,12 +54,12 @@ def get_url(url):
         return None
         
 class Notifier():
-    def __init__(self, bot_token=None, chat_id=None, **kwarg):
-        self.bot_token = bot_token
+    def __init__(self, token=None, chat_id=None, **kwarg):
+        self.bot_token = token
         self.chat_id = chat_id
         self.msg_l = {}
         self.msg_len = 0
-        log.info("configured Telgram Notifier instance %s id: %s"%(bot_token, chat_id))
+        log.info("configured Telgram Notifier instance %s id: %s"%(token, chat_id))
     def send_message (self, name, msg, chat_id=None):
         log.debug ("msg: %s chat_id: %s"%(msg, chat_id))
         
