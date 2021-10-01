@@ -29,7 +29,7 @@ import urllib
 
 # mpl_logger.setLevel(logging.WARNING)
 log = getLogger('Telegram')
-log.setLevel(log.DEBUG)
+log.setLevel(log.INFO)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 Session = None
