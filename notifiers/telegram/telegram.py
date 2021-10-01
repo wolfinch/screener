@@ -29,7 +29,7 @@ import urllib
 
 # mpl_logger.setLevel(logging.WARNING)
 log = getLogger('Telegram')
-log.setLevel(log.INFO)
+log.setLevel(log.DEBUG)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 Session = None
@@ -69,16 +69,20 @@ class Notifier():
             self.msg_l[name].append (msg)
             self.msg_len += 1
         if self.msg_len > 0 and (self.msg_len > 25 or not name):
+            log.info("notify msg len: %d"%(self.msg_len))
             self._send_msg(self.msg_l)
             self.msg_l = {}
             self.msg_len = 0
-    def _send_msg(self, msg_l, chat_id=None):
+    def _fmt_msg (self, msg_l):
         msg_str = ""
         for k, v_l in msg_l.items():
             v_str = ""
             for v in v_l:
                 v_str = v_str + str(v) + "\n"
             msg_str = msg_str+"<b>"+k+":</b>" + str(v_str)
+        return msg_str
+    def _send_msg(self, msg_l, chat_id=None):
+        msg_str = self._fmt_msg(msg_l)
         TELEGRAM_SENDMSG_API = 'https://api.telegram.org/bot%s/sendMessage?chat_id=%s&text=%s&parse_mode=html' % (
                         self.bot_token, chat_id if chat_id != None else self.chat_id, urllib.parse.quote_plus(msg_str))
         i = 0
