@@ -20,8 +20,8 @@
 '''
 import threading
 import queue
-import telegram
-import wolfinch
+import notifiers.telegram as t
+import notifiers.wolfinch as w
 import time
 
 msg_queue = None
@@ -33,9 +33,9 @@ def configure(cfg):
     for k, v in cfg.items():
         try:
             if k == "telegram":
-                no = telegram.Notifier(**v)
+                no = t.Notifier(**v)
             elif k == "wolfinch":
-                no = wolfinch.Notifier(**v)
+                no = w.Notifier(**v)
             else:
                 print ("unknown notifier %s"%(k))
                 return False

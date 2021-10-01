@@ -54,7 +54,7 @@ def get_url(url):
         return None
         
 class Notifier():
-    def __init__(self, bot_token, chat_id=None):
+    def __init__(self, bot_token=None, chat_id=None, **kwarg):
         self.bot_token = bot_token
         self.chat_id = chat_id
         self.msg_l = {}

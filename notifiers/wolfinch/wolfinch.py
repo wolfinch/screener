@@ -55,7 +55,7 @@ def post_url(url, data):
 
 WOLFINCH_ADD_MARKET_API = "/api/update_market"
 class Notifier():
-    def __init__(self, url, exchange, secret=None):
+    def __init__(self, url=None, exchange=None, secret=None, **kwarg):
         self.bot_url = url
         self.exchange = exchange
         self.secret = secret
