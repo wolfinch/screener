@@ -95,7 +95,7 @@ class Notifier():
                 else:
                     log.error("failed ")
                     return False
-            except requests.exceptions.ConnectionError as e:
+            except Exception as e:
                 log.error("expection while telegram send_msg.  retrying e: %s"%(e))
                 time.sleep(2)
                 i += 1        
