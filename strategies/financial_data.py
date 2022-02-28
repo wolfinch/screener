@@ -1,5 +1,5 @@
 #
-# Wolfinch Auto trading Bot screener
+# Collect all the financial data about tickers
 #
 #  Copyright: (c) 2017-2022 Joshith Rayaroth Koderi
 #  This file is part of Wolfinch.
@@ -18,6 +18,7 @@
 #  along with Wolfinch.  If not, see <https://www.gnu.org/licenses/>.
 
 # from decimal import Decimal
+from tkinter import N
 from .screener_base import Screener
 import yahoofin as yf
 import time
@@ -26,15 +27,14 @@ import notifiers
 
 from utils import getLogger
 
-log = getLogger("CASH_POS")
+log = getLogger("FIN_DATA")
 log.setLevel(log.DEBUG)
 
-class CASH_POS(Screener):
-    def __init__(self, name="CASH_POS", ticker_kind="ALL", interval=300, vol_multiplier=2):
+class FIN_DATA(Screener):
+    def __init__(self, name="FIN_DATA", ticker_kind="ALL", interval=24*60*60):
         log.info ("init: name: %s ticker_kind: %s interval: %d"%(name, ticker_kind, interval))
         super().__init__(name, ticker_kind, interval)
         self.YF = yf.Yahoofin ()
-        self.vol_multiplier = vol_multiplier
         self.filtered_list = {} #li
     def update(self, sym_list, ticker_stats):
         #update stats only during ~12hrs, to cover pre,open,ah (5AM-5PM PST, 12-00UTC)
@@ -48,57 +48,10 @@ class CASH_POS(Screener):
             log.critical("exception while get data e: %s"%(e))
             return False
     def screen(self, sym_list, ticker_stats):
-        #1. if cur vol >= 2x10davg vol
-        #2. renew once a day 
-        now = int(time.time())
-        if len(self.filtered_list):
-            #prune filtered list
-            s_l = []
-            for sym, info in self.filtered_list.items() :
-                if info["time"] + 4*24*60*60 < now :
-                    s_l.append(sym)
-            for s_e in s_l:
-                log.info ("del "+s_e)
-                del self.filtered_list[s_e]
-        for sym in sym_list:
-#             log.debug("sym info: %s"%(info))
-            info = ticker_stats.get(sym)
-            if info == None:
-                continue
-            rmv = info["info"].get("regularMarketVolume", -1)
-            adv10 = info["info"].get("averageDailyVolume10Day", -1)
-            rmp = info["info"].get("regularMarketPrice", -1)
-            rmcp = info["info"].get("regularMarketChangePercent", -1)
-            if (rmv != -1 and adv10 != -1 and rmv != 0 and adv10 != 0) and (
-                rmv > self.vol_multiplier*adv10):
-                fs = self.filtered_list.get(sym)
-                if (fs == None or (fs["time"] + 12*60*60 < now)):
-                    fs  = {"symbol": sym, "time": now,
-                           "last_price": round(rmp, 2),
-                           "price_change": round(rmcp, 2),
-                           "cur_price_change": round(rmcp, 2),                           
-                           "vol_change": round(100*(rmv - adv10)/adv10, 1),
-                           "cur_vol_change": round(100*(rmv - adv10)/adv10, 1)                           
-                           }
-                    log.info ('new sym found by screener: %s info:  %s'%(sym, fs))
-                    
-                    self.filtered_list [sym] = fs
-                    notify_msg = "%s price %s(%s%%) vol %s%%"%(fs["symbol"], fs["last_price"], fs["price_change"],
-                                                                       fs["vol_change"])
-                    notifiers.notify(self.name, notify_msg)
-                else:
-                    fs["cur_price_change"] = round(rmcp, 2)
-                    fs["cur_vol_change"] = round(100*(rmv - adv10)/adv10, 1)
+        # no-op , this is only a data collection 
                     
     def get_screened(self):
-#         ft = [
-#          {"symbol": "aapl", "time": 1616585400, "last_price": 10.2, "price_change": "10", "vol_change": "2", "cur_price_change": "20", "cur_vol_change": "4"},
-#          {"symbol": "codx", "time": 1616595400, "last_price": "13.2", "price_change": "20", "vol_change": "20", "cur_price_change": "30", "cur_vol_change": "30"}            
-#              ]
-        fmt = {"symbol": "symbol", "time": "time", "last_price": "last price", 
-               "price_change": "% price", "cur_price_change": "% cur price", "vol_change": "% vol", "cur_vol_change": "% cur vol"}
-        return [fmt]+list(self.filtered_list.values())
-#         return [fmt]+ft
+        return None
 
 def get_all_tickers_info(yf, sym_list, ticker_stats):
     BATCH_SIZE = 400
