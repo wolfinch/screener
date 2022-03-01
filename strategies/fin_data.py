@@ -40,7 +40,7 @@ class FIN_DATA(Screener):
     def update(self, sym_list, ticker_stats):
         symbol=sym_list[self.i]
         try:
-            get_fin_data(self.YF, symbol, ticker_stats)
+            _get_fin_data(self.YF, symbol, ticker_stats)
             if self.i+1 >= len(sym_list):
                 self.i=0
                 log.info("retrieved fin data for all (%d) tickers"%(len(sym_list)))
@@ -57,11 +57,13 @@ class FIN_DATA(Screener):
     def get_screened(self):
         return None
 
-def get_fin_data(yf, sym, ticker_stats):
+def _get_fin_data(yf, sym, ticker_stats):
 #     log.debug("num tickers(%d)"%(len(sym_list)))
+    #modules - defaultkeyStatistics,assetProfile,topHoldings,fundPerformance,fundProfile,financialData,summaryDetail
+    modules="defaultkeyStatistics,assetProfile,topHoldings,fundPerformance,fundProfile,financialData,summaryDetail"
     ss = None
     try:
-        ts, err =  yf.get_financial_data(sym)
+        ts, err =  yf.get_financial_data(sym, modules)
         if err == None:
             ss = ticker_stats.get(sym)
             if ss == None:
