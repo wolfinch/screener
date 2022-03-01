@@ -115,8 +115,9 @@ def update_data():
             log.info ("updating screener data for %s num_sym: %d"%(scrn_obj.name, len(s_list)))                
             if scrn_obj.update(s_list, g_ticker_stats):
                 scrn_obj.updated = True
-            #update time. Sometimes, data not updated during market close etc. But still update time    
-            scrn_obj.update_time = int(time.time())                 
+                #update time. 
+                # Sometimes, data not updated during market close etc. handle this in screener, update routine 
+                scrn_obj.update_time = int(time.time())                 
 
 def process_screeners ():
     log.debug("processing screeners")
