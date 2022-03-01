@@ -127,10 +127,14 @@ class VOL_SPIKE(Screener):
                                                 "volume": [ti.get("regularMarketVolume", -1)], "price": [ti.get("regularMarketPrice", -1)]
                                                 }
                         else:
-                            ss ["info"] = ti
-                            ss ["time"].append(ti.get("regularMarketTime", 0))
-                            ss ["volume"].append(ti.get("regularMarketVolume", -1))
-                            ss ["price"].append(ti.get("regularMarketPrice", -1))
+                            if ss.get("time"):
+                                ss ["time"].append(ti.get("regularMarketTime", 0))
+                                ss ["volume"].append(ti.get("regularMarketVolume", -1))
+                                ss ["price"].append(ti.get("regularMarketPrice", -1))
+                            else:
+                                ss ["time"]=[ti.get("regularMarketTime", 0)]
+                                ss ["volume"]=[ti.get("regularMarketVolume", -1)]
+                                ss ["price"]=[ti.get("regularMarketPrice", -1)]
                             #limit history
                             if len(ss["time"]) > 1024:
                                 del(ss["time"][0])
@@ -145,4 +149,5 @@ class VOL_SPIKE(Screener):
             raise e
         log.debug("(%d)ticker stats retrieved"%( len(ticker_stats)))
         return ticker_stats
+
 #EOF
