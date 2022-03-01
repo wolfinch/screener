@@ -31,7 +31,7 @@ log = getLogger("FIN_DATA")
 log.setLevel(log.DEBUG)
 
 class FIN_DATA(Screener):
-    def __init__(self, name="FIN_DATA", ticker_kind="ALL", interval=24*60*60):
+    def __init__(self, name="FIN_DATA", ticker_kind="ALL", interval=24*60*60, **kwarg):
         log.info ("init: name: %s ticker_kind: %s interval: %d"%(name, ticker_kind, interval))
         super().__init__(name, ticker_kind, interval)
         self.YF = yf.Yahoofin ()
