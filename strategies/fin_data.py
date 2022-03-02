@@ -18,7 +18,6 @@
 #  along with Wolfinch.  If not, see <https://www.gnu.org/licenses/>.
 
 # from decimal import Decimal
-from tkinter import N
 from .screener_base import Screener
 import yahoofin as yf
 import time
