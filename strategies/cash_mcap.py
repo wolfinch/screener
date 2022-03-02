@@ -81,13 +81,13 @@ class CASH_MCAP(Screener):
                     mcap=int(mcap_r.get("raw"))
                 price_r=sum_det.get("previousClose")
                 if price_r:
-                    price=int(price_r.get("raw"))
+                    price=round(float(price_r.get("raw")), 2)
                 high_r=sum_det.get("fiftyTwoWeekHigh")
                 if high_r:
-                    high=int(high_r.get("raw"))
+                    high=round(float(high_r.get("raw")), 2)
                 low_r=sum_det.get("fiftyTwoWeekLow")
                 if low_r:
-                    low=int(low_r.get("raw"))                                        
+                    low=round(float(low_r.get("raw")), 2)                                    
             fin_d = sym_d.get("financialData")
             if fin_d:
                 # log.info("find_d %s"%(fin_d))
@@ -96,19 +96,19 @@ class CASH_MCAP(Screener):
                     tcash=int(tcash_r.get("raw"))
             # log.info ("mcap %d tcash: %d"%(mcap, tcash))
             if tcash > mcap:
-                if tcash/1000000000 > 0 :
+                if tcash//1000000000 > 0 :
                     tcash_s = str(round(tcash /1000000000, 2))+"B"
-                elif tcash/1000000 > 0 :
+                elif tcash//1000000 > 0 :
                     tcash_s = str(round(tcash /1000000, 2))+"M"
-                elif tcash/1000 > 0 :
+                elif tcash//1000 > 0 :
                     tcash_s = str(round(tcash /1000, 2))+"K"                    
                 else:
                     tcash_s = str(tcash)
-                if mcap/1000000000 > 0 :
+                if mcap//1000000000 > 0 :
                     mcap_s = str(round(mcap /1000000000, 2))+"B"
-                elif mcap/1000000 > 0 :
+                elif mcap//1000000 > 0 :
                     mcap_s = str(round(mcap /1000000, 2))+"M"
-                elif mcap/1000 > 0 :
+                elif mcap//1000 > 0 :
                     mcap_s = str(round(mcap /1000, 2))+"K"                    
                 else:
                     mcap_s = str(mcap)                    
