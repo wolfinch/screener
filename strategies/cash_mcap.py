@@ -67,6 +67,9 @@ class CASH_MCAP(Screener):
         now = int(time.time())
         tcash = 0
         mcap = 0
+        high =0
+        low =0
+        price =0
         for sym in sym_list:
             sym_d = ticker_stats[sym]
             # log.info("sym_d: %s \n"%(sym_d))
@@ -76,6 +79,15 @@ class CASH_MCAP(Screener):
                 mcap_r=sum_det.get("marketCap")
                 if mcap_r:
                     mcap=int(mcap_r.get("raw"))
+                price_r=sum_det.get("previousClose")
+                if price_r:
+                    price=int(price_r.get("raw"))
+                high_r=sum_det.get("fiftyTwoWeekHigh")
+                if high_r:
+                    high=int(high_r.get("raw"))
+                low_r=sum_det.get("fiftyTwoWeekLow")
+                if low_r:
+                    low=int(low_r.get("raw"))                                        
             fin_d = sym_d.get("financialData")
             if fin_d:
                 # log.info("find_d %s"%(fin_d))
@@ -104,7 +116,10 @@ class CASH_MCAP(Screener):
                            "cur_mcap": mcap_s,
                            "total_cash": tcash_s,
                            "cash": tcash,
-                           "mcap": mcap
+                           "mcap": mcap,
+                           "price": price,
+                           "ftwh": high,
+                           "ftwl": low
                            }
                 log.info ('new sym found by screener: %s info:  %s'%(sym, fs))
                 self.filtered_list [sym] = fs
@@ -119,7 +134,7 @@ class CASH_MCAP(Screener):
 #          {"symbol": "aapl", "time": 1616585400, "last_price": 10.2, "price_change": "10", "vol_change": "2", "cur_price_change": "20", "cur_vol_change": "4"},
 #          {"symbol": "codx", "time": 1616595400, "last_price": "13.2", "price_change": "20", "vol_change": "20", "cur_price_change": "30", "cur_vol_change": "30"}            
 #              ]
-        fmt = {"symbol": "Symbol", "time": "Time", "cur_mcap": "Market Cap", "total_cash": "Total Cash"}
+        fmt = {"symbol": "Symbol", "time": "Time", "cur_mcap": "Market Cap", "total_cash": "Total Cash", "price": "Price", "ftwh": "High", "ftwl": "Low"}
         return [fmt]+list(self.filtered_list.values())
 
 #EOF
