@@ -70,9 +70,9 @@ class FIN_DATA(Screener):
             if err == None:
                 ticker_stats[sym] = ts                  
             else:
-                log.critical ("yf api failed err: %s num: %d"%(err, sym))
+                log.critical ("yf api failed err: %s sym: %s"%(err, sym))
         except Exception as e:
-            log.critical (" Exception e: %s \n ss: %s len: %d"%(e, ss, sym))
+            log.critical (" Exception e: %s \n ss: %s sym: %s"%(e, ss, sym))
             raise e
         log.debug("(%s) fin data retrieved"%(sym))
         return ticker_stats

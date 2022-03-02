@@ -39,7 +39,7 @@ log.setLevel(logging.INFO)
 
 # logging.getLogger("urllib3").setLevel(log.WARNING)
 AVG_VOL_FILTER = 500000
-
+MCAP_100M_FILTER = 100000000
 ticker_import_time = 0
 
 all_tickers = {"ALL":[], "MEGACAP":[], "GT50M": [], "LT50M": [], "OTC": [], "SPAC": []}
@@ -118,6 +118,20 @@ def get_filtered_ticker_list():
             else:
                 log.critical ("yf api failed err: %s i: %d num: %d"%(err, i, len(sym_list)))
                 time.sleep(2)
+        tl = []
+        for s in all_tickers["ALL"]:
+            st = ticker_stats.get(s)
+            if st and st.get("marketCap", 0) >= MCAP_100M_FILTER and st.get("quoteType") == "EQUITY":
+                tl.append(s)
+        all_tickers["GT100M"] = tl
+        log.info ("# GT100M tickers %s", len(tl))
+        tl = []
+        for s in all_tickers["GT100M"]:
+            st = ticker_stats.get(s)
+            if st and st.get("averageDailyVolume3Month", 0) >= AVG_VOL_FILTER :
+                tl.append(s)
+        all_tickers["GT100M500K"] = tl
+        log.info ("# GT100M500K tickers %s", len(tl))             
         tl = []
         for s in all_tickers["ALL"]:
             st = ticker_stats.get(s)
