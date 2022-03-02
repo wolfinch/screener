@@ -76,7 +76,7 @@ td { font-size: .2em; }
 
 	function add_screener_tables(scrn_data) {
 		Object.keys(scrn_data).forEach(function (scrn_name) {
-			if (scrn_data[scrn_name].length == 0) {
+			if (!scrn_data[scrn_name] || scrn_data[scrn_name].length == 0) {
 				return;
 			}
 			
@@ -126,8 +126,9 @@ td { font-size: .2em; }
 				console.log("get screener/data success!" + data);
 				add_screener_tables (data);
 				Object.keys(data).forEach(function(scrn_name) {
-					console.log("load scrn_name: "+scrn_name);		
-					load_tables (scrn_name, data[scrn_name]);
+					console.log("load scrn_name: "+scrn_name);
+					if (data[scrn_name])
+						load_tables (scrn_name, data[scrn_name]);
 				});
 			},
 			error : function(xhr, error) {

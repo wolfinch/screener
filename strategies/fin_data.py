@@ -37,10 +37,13 @@ class FIN_DATA(Screener):
         self.YF = yf.Yahoofin ()
         self.filtered_list = {} #li
         self.i = 0
-    def update(self, sym_list, ticker_stats):
+    def update(self, sym_list, ticker_stats_g):
         symbol=sym_list[self.i]
         try:
-            _get_fin_data(self.YF, symbol, ticker_stats)
+            if not ticker_stats_g.get(self.name):
+                ticker_stats_g[self.name] = {}
+            ticker_stats = ticker_stats_g.get(self.name)            
+            self._get_fin_data(self.YF, symbol, ticker_stats)
             if self.i+1 >= len(sym_list):
                 self.i=0
                 log.info("retrieved fin data for all (%d) tickers"%(len(sym_list)))
@@ -57,24 +60,20 @@ class FIN_DATA(Screener):
     def get_screened(self):
         return None
 
-def _get_fin_data(yf, sym, ticker_stats):
-#     log.debug("num tickers(%d)"%(len(sym_list)))
-    #modules - defaultkeyStatistics,assetProfile,topHoldings,fundPerformance,fundProfile,financialData,summaryDetail
-    modules="defaultkeyStatistics,assetProfile,topHoldings,fundPerformance,fundProfile,financialData,summaryDetail"
-    ss = None
-    try:
-        ts, err =  yf.get_financial_data(sym, modules)
-        if err == None:
-            ss = ticker_stats.get(sym)
-            if ss == None:
-                ticker_stats[sym] = {"data": ts}
+    def _get_fin_data(self, yf, sym, ticker_stats):
+    #     log.debug("num tickers(%d)"%(len(sym_list)))
+        #modules - defaultkeyStatistics,assetProfile,topHoldings,fundPerformance,fundProfile,financialData,summaryDetail
+        modules="defaultkeyStatistics,assetProfile,topHoldings,fundPerformance,fundProfile,financialData,summaryDetail"
+        ss = None
+        try:
+            ts, err =  yf.get_financial_data(sym, modules)
+            if err == None:
+                ticker_stats[sym] = ts                  
             else:
-                ss ["data"] = ts                     
-        else:
-            log.critical ("yf api failed err: %s num: %d"%(err, sym))
-    except Exception as e:
-        log.critical (" Exception e: %s \n ss: %s len: %d"%(e, ss, sym))
-        raise e
-    log.debug("(%s) fin data retrieved"%(sym))
-    return ticker_stats
+                log.critical ("yf api failed err: %s num: %d"%(err, sym))
+        except Exception as e:
+            log.critical (" Exception e: %s \n ss: %s len: %d"%(e, ss, sym))
+            raise e
+        log.debug("(%s) fin data retrieved"%(sym))
+        return ticker_stats
 #EOF
