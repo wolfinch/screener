@@ -70,65 +70,67 @@ class CASH_MCAP(Screener):
         high =0
         low =0
         price =0
-        for sym in sym_list:
-            sym_d = ticker_stats[sym]
-            # log.info("sym_d: %s \n"%(sym_d))
-            sum_det = sym_d.get("summaryDetail")
-            if sum_det:
-                # log.info("sum_d %s"%(sum_det))
-                mcap_r=sum_det.get("marketCap")
-                if mcap_r:
-                    mcap=int(mcap_r.get("raw"))
-                price_r=sum_det.get("previousClose")
-                if price_r:
-                    price=round(float(price_r.get("raw")), 2)
-                high_r=sum_det.get("fiftyTwoWeekHigh")
-                if high_r:
-                    high=round(float(high_r.get("raw")), 2)
-                low_r=sum_det.get("fiftyTwoWeekLow")
-                if low_r:
-                    low=round(float(low_r.get("raw")), 2)                                    
-            fin_d = sym_d.get("financialData")
-            if fin_d:
-                # log.info("find_d %s"%(fin_d))
-                tcash_r=fin_d.get("totalCash")
-                if tcash_r:
-                    tcash=int(tcash_r.get("raw"))
-            # log.info ("mcap %d tcash: %d"%(mcap, tcash))
-            if tcash > mcap:
-                if tcash//1000000000 > 0 :
-                    tcash_s = str(round(tcash /1000000000, 2))+"B"
-                elif tcash//1000000 > 0 :
-                    tcash_s = str(round(tcash /1000000, 2))+"M"
-                elif tcash//1000 > 0 :
-                    tcash_s = str(round(tcash /1000, 2))+"K"                    
-                else:
-                    tcash_s = str(tcash)
-                if mcap//1000000000 > 0 :
-                    mcap_s = str(round(mcap /1000000000, 2))+"B"
-                elif mcap//1000000 > 0 :
-                    mcap_s = str(round(mcap /1000000, 2))+"M"
-                elif mcap//1000 > 0 :
-                    mcap_s = str(round(mcap /1000, 2))+"K"                    
-                else:
-                    mcap_s = str(mcap)                    
-                fs  = {"symbol": sym, "time": now,
-                           "cur_mcap": mcap_s,
-                           "total_cash": tcash_s,
-                           "cash": tcash,
-                           "mcap": mcap,
-                           "price": price,
-                           "ftwh": high,
-                           "ftwl": low
-                           }
-                log.info ('new sym found by screener: %s info:  %s'%(sym, fs))
-                self.filtered_list [sym] = fs
-                if self.notify_kind:
-                    notify_msg = {"symbol": fs["symbol"],
-                                    "cur_mcap": "%s)"%(mcap_s),
-                                    "total_cash": "%s"%(tcash_s)}
-                    notifiers.notify(self.notify_kind, self.name, notify_msg)
-                    
+        try:
+            for sym in sym_list:
+                sym_d = ticker_stats[sym]
+                log.info("sym_d: %s \n"%(sym_d))
+                sum_det = sym_d.get("summaryDetail")
+                if sum_det:
+                    # log.info("sum_d %s"%(sum_det))
+                    mcap_r=sum_det.get("marketCap")
+                    if mcap_r:
+                        mcap=int(mcap_r.get("raw"))
+                    price_r=sum_det.get("previousClose")
+                    if price_r:
+                        price=round(float(price_r.get("raw")), 2)
+                    high_r=sum_det.get("fiftyTwoWeekHigh")
+                    if high_r:
+                        high=round(float(high_r.get("raw")), 2)
+                    low_r=sum_det.get("fiftyTwoWeekLow")
+                    if low_r:
+                        low=round(float(low_r.get("raw")), 2)                                    
+                fin_d = sym_d.get("financialData")
+                if fin_d:
+                    # log.info("find_d %s"%(fin_d))
+                    tcash_r=fin_d.get("totalCash")
+                    if tcash_r:
+                        tcash=int(tcash_r.get("raw"))
+                # log.info ("mcap %d tcash: %d"%(mcap, tcash))
+                if tcash > mcap:
+                    if tcash//1000000000 > 0 :
+                        tcash_s = str(round(tcash /1000000000, 2))+"B"
+                    elif tcash//1000000 > 0 :
+                        tcash_s = str(round(tcash /1000000, 2))+"M"
+                    elif tcash//1000 > 0 :
+                        tcash_s = str(round(tcash /1000, 2))+"K"                    
+                    else:
+                        tcash_s = str(tcash)
+                    if mcap//1000000000 > 0 :
+                        mcap_s = str(round(mcap /1000000000, 2))+"B"
+                    elif mcap//1000000 > 0 :
+                        mcap_s = str(round(mcap /1000000, 2))+"M"
+                    elif mcap//1000 > 0 :
+                        mcap_s = str(round(mcap /1000, 2))+"K"                    
+                    else:
+                        mcap_s = str(mcap)                    
+                    fs  = {"symbol": sym, "time": now,
+                            "cur_mcap": mcap_s,
+                            "total_cash": tcash_s,
+                            "cash": tcash,
+                            "mcap": mcap,
+                            "price": price,
+                            "ftwh": high,
+                            "ftwl": low
+                            }
+                    log.info ('new sym found by screener: %s info:  %s'%(sym, fs))
+                    self.filtered_list [sym] = fs
+                    if self.notify_kind:
+                        notify_msg = {"symbol": fs["symbol"],
+                                        "cur_mcap": "%s)"%(mcap_s),
+                                        "total_cash": "%s"%(tcash_s)}
+                        notifiers.notify(self.notify_kind, self.name, notify_msg)
+        except Exception as e:
+            log.critical("exception while get screen e: %s"%(e))
     def get_screened(self):
 #         ft = [
 #          {"symbol": "aapl", "time": 1616585400, "last_price": 10.2, "price_change": "10", "vol_change": "2", "cur_price_change": "20", "cur_vol_change": "4"},
