@@ -62,7 +62,7 @@ class FIN_DATA(Screener):
     def _get_fin_data(self, yf, sym, ticker_stats):
     #     log.debug("num tickers(%d)"%(len(sym_list)))
         #modules - defaultkeyStatistics,assetProfile,topHoldings,fundPerformance,fundProfile,financialData,summaryDetail
-        modules="defaultkeyStatistics,assetProfile,topHoldings,fundPerformance,fundProfile,financialData,summaryDetail"
+        modules="defaultkeyStatistics,assetProfile,topHoldings,fundPerformance,fundProfile,financialData,summaryDetail,summaryProfile"
         ss = None
         try:
             ts, err =  yf.get_financial_data(sym, modules)
