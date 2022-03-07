@@ -48,7 +48,7 @@ ticker_import_time = 0
 YF = None
 
 # global Variables
-MAIN_TICK_DELAY = 0.500  # 500*4 milli
+MAIN_TICK_DELAY = 1  # 500*4 milli
 
 def screener_init():
     global YF, ScreenerConfig

@@ -18,6 +18,7 @@
 #  along with Wolfinch.  If not, see <https://www.gnu.org/licenses/>.
 
 # from decimal import Decimal
+from tkinter import E, N
 from .screener_base import Screener
 import yahoofin as yf
 import time
@@ -36,7 +37,15 @@ class FIN_DATA(Screener):
         self.YF = yf.Yahoofin ()
         self.filtered_list = {} #li
         self.i = 0
+        self._e = 0
     def update(self, sym_list, ticker_stats_g):
+        #if we hit an exception, wait xxx sec to clear and try again
+        if self._e:
+            if self._e + 300 < int(time.time()):
+                self._e = None
+            else:
+                log.error ("exception context. retrying in %d sec"%(self._e + 300 - int(time.time())))
+                return False
         symbol=sym_list[self.i]
         try:
             if not ticker_stats_g.get(self.name):
@@ -52,6 +61,7 @@ class FIN_DATA(Screener):
                 return False
         except Exception as e:
             log.critical("exception while get data e: %s"%(e))
+            self._e = int(time.time())
             return False
     def screen(self, sym_list, ticker_stats):
         # no-op , this is only a data collection 
@@ -70,6 +80,7 @@ class FIN_DATA(Screener):
                 ticker_stats[sym] = ts                  
             else:
                 log.critical ("yf api failed err: %s sym: %s"%(err, sym))
+                raise Exception ("yf API failed with error %s"%(err))
         except Exception as e:
             log.critical (" Exception e: %s \n ss: %s sym: %s"%(e, ss, sym))
             raise e
