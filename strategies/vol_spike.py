@@ -96,6 +96,7 @@ class VOL_SPIKE(Screener):
                                       "vol": "%s%%"%(fs["vol_change"])}
                         notifiers.notify(self.notify_kind, self.name, notify_msg)
                 else:
+                    fs["last_price"] = round(rmp, 2)
                     fs["cur_price_change"] = round(rmcp, 2)
                     fs["cur_vol_change"] = round(100*(rmv - adv10)/adv10, 1)
                     
@@ -136,7 +137,7 @@ class VOL_SPIKE(Screener):
                                 ss ["volume"]=[ti.get("regularMarketVolume", -1)]
                                 ss ["price"]=[ti.get("regularMarketPrice", -1)]
                             #limit history
-                            if len(ss["time"]) > 1024:
+                            if len(ss["time"]) > 512:
                                 del(ss["time"][0])
                                 del(ss["volume"][0])
                                 del(ss["price"][0])                       

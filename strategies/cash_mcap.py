@@ -99,6 +99,12 @@ class CASH_MCAP(Screener):
                     tcash_r=fin_d.get("totalCash")
                     if tcash_r:
                         tcash=int(tcash_r.get("raw"))
+                    tdebt = 0
+                    tdebt_r=fin_d.get("totalDebt")
+                    if tdebt_r:
+                        tdebt=int(tdebt_r.get("raw"))
+                    #get net cash balance
+                    tcash = tcash - tdebt           
                 # log.info ("mcap %d tcash: %d"%(mcap, tcash))
                 if tcash > mcap:
                     if tcash//1000000000 > 0 :
