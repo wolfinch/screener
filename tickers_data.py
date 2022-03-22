@@ -40,6 +40,7 @@ log.setLevel(logging.INFO)
 # logging.getLogger("urllib3").setLevel(log.WARNING)
 AVG_VOL_FILTER = 500000
 MCAP_100M_FILTER = 100000000
+PRICE_LT5_FILTER = 5
 ticker_import_time = 0
 
 all_tickers = {"ALL":[], "MEGACAP":[], "GT50M": [], "LT50M": [], "OTC": [], "SPAC": []}
@@ -118,6 +119,7 @@ def get_filtered_ticker_list():
             else:
                 log.critical ("yf api failed err: %s i: %d num: %d"%(err, i, len(sym_list)))
                 time.sleep(2)
+        #find all tickers >100M market cap
         tl = []
         for s in all_tickers["ALL"]:
             st = ticker_stats.get(s)
@@ -125,13 +127,24 @@ def get_filtered_ticker_list():
                 tl.append(s)
         all_tickers["GT100M"] = tl
         log.info ("# GT100M tickers %s", len(tl))
+        #find all tickers >100M market cap and 500K avg volume
         tl = []
         for s in all_tickers["GT100M"]:
             st = ticker_stats.get(s)
             if st and st.get("averageDailyVolume3Month", 0) >= AVG_VOL_FILTER :
                 tl.append(s)
         all_tickers["GT100M500K"] = tl
-        log.info ("# GT100M500K tickers %s", len(tl))             
+        log.info ("# GT100M500K tickers %s", len(tl))
+        ## find all tickers less than $5 and GT 100M mcap and 500K volume
+        tl = []
+        for s in all_tickers["GT100M500K"]:
+            st = ticker_stats.get(s)
+            if st and st.get("regularMarketPrice", 0) <= PRICE_LT5_FILTER and st.get("quoteType") == "EQUITY":
+                tl.append(s)
+        all_tickers["GT100M500KLT5"] = tl
+        log.info ("# GT100M500KLT5 tickers %s", len(tl))
+                
+        #get all tickers >500K volume 
         tl = []
         for s in all_tickers["ALL"]:
             st = ticker_stats.get(s)

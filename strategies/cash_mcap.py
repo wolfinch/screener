@@ -92,7 +92,7 @@ class CASH_MCAP(Screener):
                         high=round(float(high_r.get("raw")), 2)
                     low_r=sum_det.get("fiftyTwoWeekLow")
                     if low_r:
-                        low=round(float(low_r.get("raw")), 2)                                    
+                        low=round(float(low_r.get("raw")), 2)
                 fin_d = sym_d.get("financialData")
                 if fin_d:
                     # log.info("find_d %s"%(fin_d))
