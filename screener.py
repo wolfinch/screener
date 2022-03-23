@@ -33,6 +33,7 @@ from  strategies import Configure
 import notifiers
 from tickers_data import get_all_ticker_lists
 import ui
+import gc
 
 from utils import getLogger, readConf
 
@@ -80,6 +81,7 @@ def screener_end():
     ui.ui_end()
     log.info("all cleanup done.")
 
+gc_time = 0
 def screener_main():
     """
     Main Function for Screener
@@ -89,6 +91,10 @@ def screener_main():
         cur_time = time.time()
         update_data()
         process_screeners()
+        if gc_time + 6*60*60 < int(time.time()):
+            log.info("force garbage collect")
+            gc.collect()
+            gc_time = int(time.time())
         # '''Make sure each iteration take exactly LOOP_DELAY time'''
         sleep_time = (MAIN_TICK_DELAY -(time.time()- cur_time))
 #         if sleep_time < 0 :
