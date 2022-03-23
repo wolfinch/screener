@@ -40,7 +40,7 @@ class OPTIONS(Screener):
         self.filtered_list = {} #li
         self.i = 0
         self._e = 0
-        self.delay = 3
+        self.delay = 0
         self._d = 0
     def update(self, sym_list, ticker_stats_g):
         #if we hit an exception, wait xxx sec to clear and try again
@@ -60,11 +60,13 @@ class OPTIONS(Screener):
         try:
             if not ticker_stats_g.get(self.name):
                 ticker_stats_g[self.name] = {}
-            ticker_stats = ticker_stats_g.get(self.name)            
+            ticker_stats = ticker_stats_g.get(self.name)
+            ticker_stats["__updated__"] = False
             self._get_options(self.YF, symbol, ticker_stats)
             if self.i+1 >= len(sym_list):
                 self.i=0
                 log.info("retrieved options for all (%d) tickers"%(len(sym_list)))
+                ticker_stats["__updated__"] = True
                 return True
             else:
                 self.i+=1

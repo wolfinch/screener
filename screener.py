@@ -81,12 +81,12 @@ def screener_end():
     ui.ui_end()
     log.info("all cleanup done.")
 
-gc_time = 0
 def screener_main():
     """
     Main Function for Screener
     """
     sleep_time = MAIN_TICK_DELAY
+    gc_time = 0
     while True:
         cur_time = time.time()
         update_data()
