@@ -45,4 +45,6 @@ class Screener (metaclass=ABCMeta):
     def get_screened(self):
         return []    
 
+class Tstats (dict):
+    pass
 #EOF

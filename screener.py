@@ -21,6 +21,8 @@
 
 import sys
 import os
+
+from strategies.screener_base import Tstats
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), "../wolfinch/pkgs"))
 
 import time
@@ -109,7 +111,10 @@ def register_screeners(cfg):
     global g_screeners
     log.debug("registering screeners")
     g_screeners = Configure(cfg)
-
+    for scrn_obj in g_screeners:
+        #create data holders for each screener
+        g_ticker_stats[scrn_obj.name] = Tstats()
+        g_ticker_stats[scrn_obj.name].updated = False
 def update_data():
     #update stats only during ~12hrs, to cover pre,open,ah
     log.debug("updating data")
@@ -123,9 +128,12 @@ def update_data():
             log.info ("updating screener data for %s num_sym: %d"%(scrn_obj.name, len(s_list)))                
             if scrn_obj.update(s_list, g_ticker_stats):
                 scrn_obj.updated = True
+                g_ticker_stats[scrn_obj.name].updated = True
                 #update time. 
                 # Sometimes, data not updated during market close etc. handle this in screener, update routine 
-                scrn_obj.update_time = int(time.time())                 
+                scrn_obj.update_time = int(time.time())
+            else:
+                g_ticker_stats[scrn_obj.name].updated = False
 
 def process_screeners ():
     log.debug("processing screeners")

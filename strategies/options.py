@@ -42,8 +42,9 @@ class OPTIONS(Screener):
         self._e = 0
         self.delay = 0
         self._d = 0
-    def update(self, sym_list, ticker_stats_g):
+    def update(self, _sym_list, ticker_stats_g):
         #if we hit an exception, wait xxx sec to clear and try again
+        sym_list = ["AAPL", "TSLA", "MSFT"]
         if self._e:
             if self._e + 300 < int(time.time()):
                 self._e = None
@@ -58,20 +59,16 @@ class OPTIONS(Screener):
                 return False
         symbol=sym_list[self.i]
         try:
-            if not ticker_stats_g.get(self.name):
-                ticker_stats_g[self.name] = {}
             ticker_stats = ticker_stats_g.get(self.name)
-            ticker_stats["__updated__"] = False
             self._get_options(self.YF, symbol, ticker_stats)
             if self.i+1 >= len(sym_list):
                 self.i=0
                 log.info("retrieved options for all (%d) tickers"%(len(sym_list)))
-                ticker_stats["__updated__"] = True
                 return True
             else:
                 self.i+=1
                 #add a delay between subsequent req
-                self._d = int(time.time())                
+                self._d = int(time.time())
                 return False
         except Exception as e:
             log.critical("exception while get data e: %s"%(e))
