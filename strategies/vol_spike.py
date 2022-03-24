@@ -43,8 +43,6 @@ class VOL_SPIKE(Screener):
             log.debug("market closed")
             return False
         try:
-            if not ticker_stats_g.get(self.name):
-                ticker_stats_g[self.name] = {}
             ticker_stats = ticker_stats_g.get(self.name)
             self._get_all_tickers_info(self.YF, sym_list, ticker_stats)
             return True

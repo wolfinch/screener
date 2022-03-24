@@ -48,8 +48,6 @@ class FIN_DATA(Screener):
                 return False
         symbol=sym_list[self.i]
         try:
-            if not ticker_stats_g.get(self.name):
-                ticker_stats_g[self.name] = {}
             ticker_stats = ticker_stats_g.get(self.name)            
             self._get_fin_data(self.YF, symbol, ticker_stats)
             if self.i+1 >= len(sym_list):
