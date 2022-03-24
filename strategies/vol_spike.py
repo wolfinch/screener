@@ -18,6 +18,7 @@
 #  along with Wolfinch.  If not, see <https://www.gnu.org/licenses/>.
 
 # from decimal import Decimal
+import traceback
 from .screener_base import Screener
 import yahoofin as yf
 import time
@@ -40,14 +41,14 @@ class VOL_SPIKE(Screener):
     def update(self, sym_list, ticker_stats_g):
         #update stats only during ~12hrs, to cover pre,open,ah (5AM-5PM PST, 12-00UTC)
         if datetime.utcfromtimestamp(int(time.time())).hour <= 12 :
-            log.debug("market closed")
+            # log.debug("market closed")
             return False
         try:
             ticker_stats = ticker_stats_g.get(self.name)
             self._get_all_tickers_info(self.YF, sym_list, ticker_stats)
             return True
         except Exception as e:
-            log.critical("exception while get data e: %s"%(e))
+            log.critical("exception while get screen e: %s exception: %s" % (e, traceback.format_exc()))
             return False
     def screen(self, sym_list, ticker_stats_g):
         #1. if cur vol >= 2x10davg vol

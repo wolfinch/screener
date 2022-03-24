@@ -20,6 +20,7 @@
 
 # from decimal import Decimal
 import re
+import traceback
 from .screener_base import Screener
 import time
 from datetime import datetime
@@ -53,7 +54,7 @@ class CASH_MCAP(Screener):
                     return False
             return True
         except Exception as e:
-            log.critical("exception while get data_src_name e: %s"%(e))
+            log.critical("exception while get data e: %s exception: %s" % (e, traceback.format_exc()))
             return False
     def screen(self, sym_list, ticker_stats_g):
         # Screen: Total_cash_balance > cur_market_cap
@@ -151,7 +152,7 @@ class CASH_MCAP(Screener):
                                         "total_cash": "%s"%(tcash_s)}
                         notifiers.notify(self.notify_kind, self.name, notify_msg)
         except Exception as e:
-            log.critical("exception while get screen e: %s"%(e))
+            log.critical("exception while get screen e: %s exception: %s" % (e, traceback.format_exc()))
     def get_screened(self):
 #         ft = [
 #          {"symbol": "aapl", "time": 1616585400, "last_price": 10.2, "price_change": "10", "vol_change": "2", "cur_price_change": "20", "cur_vol_change": "4"},

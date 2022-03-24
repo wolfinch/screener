@@ -20,6 +20,7 @@
 #  along with Wolfinch.  If not, see <https://www.gnu.org/licenses/>.
 
 # from decimal import Decimal
+import traceback
 from datetime import datetime
 from utils import getLogger
 from .screener_base import Screener
@@ -28,6 +29,7 @@ import notifiers
 
 log = getLogger("OPT_IV")
 log.setLevel(log.DEBUG)
+MAX_SCREENED_TICKERS = 50
 
 class OPT_IV(Screener):
     def __init__(self, name="OPT_IV", ticker_kind="ALL", interval=24*60*60, multiplier=1, data="", notify=None, **kwarg):
@@ -44,7 +46,8 @@ class OPT_IV(Screener):
         try:
             t_data = ticker_stats_g.get(self.data_src_name)
             if not t_data:
-                log.error("ticker data_src_name from screener %s not updated" % (self.data_src_name))
+                log.error("ticker data_src_name from screener %s not updated" % (
+                    self.data_src_name))
                 return False
             # make sure all data_src_name available for our list
             # TODO: FIXME: optimize this
@@ -70,9 +73,9 @@ class OPT_IV(Screener):
             fs_l = []
             for sym in sym_list:
                 sym_d = ticker_stats.get(sym)
-                # log.info("sym_d: %s \n"%(sym_d))
+                log.debug("screen : %s \n"%(sym))
                 if not sym_d or len(sym_d) == 0:
-                    log.debug ("unable to get options for sym %s"%(sym))
+                    log.error("unable to get options for sym %s" % (sym))
                     continue
                 puts = sym_d[0].get("puts")
                 if puts:
@@ -82,12 +85,14 @@ class OPT_IV(Screener):
                         if pc["inTheMoney"]:
                             break
                         i += 1
+                    if i >= len(puts):
+                        i -= 1
                     pc = puts[i]
-                    iv = round(pc["impliedVolatility"], 2)
+                    iv = round(pc.get("impliedVolatility", 0), 2)
                     strike = pc["strike"]
-                    oi = pc["openInterest"]
-                    price = round(pc["lastPrice"], 2)
-                    c_sym = pc["contractSymbol"]
+                    oi = pc.get("openInterest", 0)
+                    price = round(pc.get("lastPrice", 0), 2)
+                    c_sym = pc.get("contractSymbol", 0)
                     exp = c_sym[len(sym):len(sym)+6]
                     fs = {"symbol": sym, "time": now,
                           "strike": strike,
@@ -96,7 +101,7 @@ class OPT_IV(Screener):
                           "expiry": exp,
                           "oi": oi,
                           }
-                    # log.info('new sym found by screener: %s info:  %s' %(sym, fs))
+                    log.info('new sym found by screener: %s info:  %s' %(sym, fs))
                     fs_l.append(fs)
                     # if self.notify_kind:
                     #     notify_msg = {"symbol": fs["symbol"],
@@ -106,10 +111,10 @@ class OPT_IV(Screener):
             # now that we have list of opt. sort the list and get only top 25
             fs_l.sort(reverse=True, key=lambda e: e["iv"])
             self.filtered_list = {}  # clear list
-            for fs in fs_l[:25]:
+            for fs in fs_l[:MAX_SCREENED_TICKERS]:
                 self.filtered_list[fs["symbol"]] = fs
         except Exception as e:
-            log.critical("exception while get screen e: %s" % (e))
+            log.critical("exception while screen e: %s exception: %s" % (e, traceback.format_exc()))
 
     def get_screened(self):
         #         ft = [

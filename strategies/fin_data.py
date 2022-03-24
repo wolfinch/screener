@@ -19,6 +19,7 @@
 
 # from decimal import Decimal
 from tkinter import E, N
+import traceback
 from .screener_base import Screener
 import yahoofin as yf
 import time
@@ -58,7 +59,7 @@ class FIN_DATA(Screener):
                 self.i+=1
                 return False
         except Exception as e:
-            log.critical("exception while get data e: %s"%(e))
+            log.critical("exception while get screen e: %s exception: %s" % (e, traceback.format_exc()))
             self._e = int(time.time())
             return False
     def screen(self, sym_list, ticker_stats):

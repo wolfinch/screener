@@ -19,7 +19,7 @@
 
 # from decimal import Decimal
 from tkinter import E, N
-
+import traceback
 from sqlalchemy import true
 from .screener_base import Screener
 import yahoofin as yf
@@ -44,7 +44,7 @@ class OPTIONS(Screener):
         self._d = 0
     def update(self, sym_list, ticker_stats_g):
         #if we hit an exception, wait xxx sec to clear and try again
-        # sym_list = ["AAPL", "TSLA", "MSFT"]
+        # sym_list = ["UPH", "CLOV", "MILE"]
         if self._e:
             if self._e + 300 < int(time.time()):
                 self._e = None
@@ -71,7 +71,7 @@ class OPTIONS(Screener):
                 self._d = int(time.time())
                 return False
         except Exception as e:
-            log.critical("exception while get data e: %s"%(e))
+            log.critical("exception while get data e: %s exception: %s" % (e, traceback.format_exc()))
             self._e = int(time.time())
             return False
     def screen(self, sym_list, ticker_stats):

@@ -142,7 +142,7 @@ def get_filtered_ticker_list():
             if st and st.get("regularMarketPrice", 0) <= PRICE_LT5_FILTER and st.get("quoteType") == "EQUITY":
                 tl.append(s)
         all_tickers["GT100M500KLT5"] = tl
-        log.info ("# GT100M500KLT5 tickers %s", len(tl))
+        log.info ("# GT100M500KLT5 tickers %s \n tl- %s", len(tl), tl)
                 
         #get all tickers >500K volume 
         tl = []
