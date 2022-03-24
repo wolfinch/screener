@@ -96,8 +96,7 @@ class OPT_IV(Screener):
                           "expiry": exp,
                           "oi": oi,
                           }
-                    log.info('new sym found by screener: %s info:  %s' %
-                             (sym, fs))
+                    log.info('new sym found by screener: %s info:  %s' %(sym, fs))
                     fs_l.append(fs)
                     # if self.notify_kind:
                     #     notify_msg = {"symbol": fs["symbol"],
@@ -107,9 +106,7 @@ class OPT_IV(Screener):
             # now that we have list of opt. sort the list and get only top 25
             fs_l.sort(reverse=True, key=lambda e: e["iv"])
             self.filtered_list = {}  # clear list
-            log.debug("adfsf %s"%(fs_l))
             for fs in fs_l[:25]:
-                log.debug("filtered list %s"%(fs))
                 self.filtered_list[fs["symbol"]] = fs
         except Exception as e:
             log.critical("exception while get screen e: %s" % (e))

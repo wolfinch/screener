@@ -40,11 +40,11 @@ class OPTIONS(Screener):
         self.filtered_list = {} #li
         self.i = 0
         self._e = 0
-        self.delay = 0
+        self.delay = 0   #delay between each query on ticker
         self._d = 0
-    def update(self, _sym_list, ticker_stats_g):
+    def update(self, sym_list, ticker_stats_g):
         #if we hit an exception, wait xxx sec to clear and try again
-        sym_list = ["AAPL", "TSLA", "MSFT"]
+        # sym_list = ["AAPL", "TSLA", "MSFT"]
         if self._e:
             if self._e + 300 < int(time.time()):
                 self._e = None
