@@ -96,7 +96,7 @@ class OPT_IV(Screener):
                           "expiry": exp,
                           "oi": oi,
                           }
-                    log.info('new sym found by screener: %s info:  %s' %(sym, fs))
+                    # log.info('new sym found by screener: %s info:  %s' %(sym, fs))
                     fs_l.append(fs)
                     # if self.notify_kind:
                     #     notify_msg = {"symbol": fs["symbol"],

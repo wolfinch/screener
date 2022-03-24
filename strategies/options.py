@@ -40,7 +40,7 @@ class OPTIONS(Screener):
         self.filtered_list = {} #li
         self.i = 0
         self._e = 0
-        self.delay = 0   #delay between each query on ticker
+        self.delay = 3   #delay between each query on ticker
         self._d = 0
     def update(self, sym_list, ticker_stats_g):
         #if we hit an exception, wait xxx sec to clear and try again
