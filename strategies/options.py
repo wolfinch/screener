@@ -82,35 +82,10 @@ class OPTIONS(Screener):
     def _get_options(self, sym, ticker_stats):
         log.debug("get option chains for %s", sym)
         exp_date=None
-        exp_dates=None
-        i = 0
-        oc=[]
         try:
-            while True:
-                oc_d, err =  data.get_options(sym, exp_date)
-                if err == None:
-                    if exp_dates == None:
-                        #first iteration. get option chain exp dates 
-                        exp_dates = oc_d["expirationDates"]
-                        if len(exp_dates) == 0 :
-                            log.info("options unsupported for symbol %s", sym)
-                            break
-                    #get option chains for expdate (for the first iter, it will be nearest exp)
-                    c_oc = oc_d["options"][0]
-                    log.debug("exp: %d num_call: %d num_put: %d"%(c_oc["expirationDate"], len(c_oc["calls"]), len(c_oc["puts"])))
-                    oc.append(c_oc)
-                    i += 1
-                    if i < len(exp_dates):
-                        exp_date=exp_dates[i]
-                    else:
-                        log.debug ("got all option chains for %s. num_chains - %d", sym, len(oc))
-                        break
-                else:
-                    log.critical ("yf api failed err: %s sym: %s"%(err, sym))
-                    raise Exception ("yf API failed with error %s"%(err))
-            ticker_stats[sym] = oc
+            ticker_stats[sym] = data.get_options(sym, exp_date)
         except Exception as e:
-            log.critical (" Exception e: %s \n oc: %s sym: %s"%(e, oc, sym))
+            log.critical (" Exception e: %s \n sym: %s"%(e, sym))
             raise e
         log.debug("(%s) options retrieved"%(sym))
         return ticker_stats

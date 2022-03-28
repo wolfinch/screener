@@ -83,7 +83,9 @@ def get_all_ticker_lists ():
                 all_tickers["SPAC"] = t_l
                 log.info("SPAC (%d) tickers imported"%(len(t_l)))
             #get filtered list based on vol
-            get_filtered_ticker_list()
+            # get_filtered_ticker_list()
+            tl = ["TSLA", "NIO", "MSFT", "INO", "ARVL"]
+            all_tickers["GT100M500KLT5"] = tl             
             ticker_import_time = int(time.time())
         except Exception :
             log.critical("exception occured while getting filtered list")
@@ -126,7 +128,7 @@ def get_filtered_ticker_list():
             st = ticker_stats.get(s)
             if st and st.get("averageDailyVolume3Month", 0) >= AVG_VOL_FILTER :
                 tl.append(s)
-        tl = ["TSLA", "NIO", "MSFT", "INO", "ARVL"]
+        # tl = ["TSLA", "NIO", "MSFT", "INO", "ARVL"]
         all_tickers["GT100M500K"] = tl
         log.info ("# GT100M500K tickers %s", len(tl))
         ## find all tickers less than $5 and GT 100M mcap and 500K volume
@@ -135,6 +137,7 @@ def get_filtered_ticker_list():
             st = ticker_stats.get(s)
             if st and st.get("regularMarketPrice", 0) <= PRICE_LT5_FILTER and st.get("quoteType") == "EQUITY":
                 tl.append(s)
+        # tl = ["TSLA", "NIO", "MSFT", "INO", "ARVL"]
         all_tickers["GT100M500KLT5"] = tl
         log.info ("# GT100M500KLT5 tickers %s \n tl- %s", len(tl), tl)
                 

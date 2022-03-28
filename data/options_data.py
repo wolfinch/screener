@@ -28,22 +28,35 @@ from decimal import getcontext
 import logging
 import requests
 import pprint
+from .data import log, YF
 
-import yahoofin as yf
-from utils import getLogger
-import nasdaq
-
-# logging.getLogger("urllib3").setLevel(log.WARNING)
-AVG_VOL_FILTER = 500000
-MCAP_100M_FILTER = 100000000
-PRICE_LT5_FILTER = 5
-ticker_import_time = 0
-
-all_tickers = {"ALL":[], "MEGACAP":[], "GT50M": [], "LT50M": [], "OTC": [], "SPAC": []}
-
-
-def get_options(sym, date=None, kind=None):
-    pass
+def get_options(sym, exp_date=None, kind=None):
+    return get_options_yf (sym, exp_date)
+def get_options_yf(sym, exp_date=None):
+    oc = []
+    while True:
+        oc_d, err =  YF.get_options(sym, exp_date)
+        if err == None:
+            if exp_dates == None:
+                #first iteration. get option chain exp dates 
+                exp_dates = oc_d["expirationDates"]
+                if len(exp_dates) == 0 :
+                    log.info("options unsupported for symbol %s", sym)
+                    break
+            #get option chains for expdate (for the first iter, it will be nearest exp)
+            c_oc = oc_d["options"][0]
+            log.debug("exp: %d num_call: %d num_put: %d"%(c_oc["expirationDate"], len(c_oc["calls"]), len(c_oc["puts"])))
+            oc.append(c_oc)
+            i += 1
+            if i < len(exp_dates):
+                exp_date=exp_dates[i]
+            else:
+                log.debug ("got all option chains for %s. num_chains - %d", sym, len(oc))
+                break
+        else:
+            log.critical ("yf api failed err: %s sym: %s"%(err, sym))
+            raise Exception ("yf API failed with error %s"%(err))  
+    return oc
 
 ######### ******** MAIN ****** #########
 if __name__ == '__main__':
@@ -55,11 +68,7 @@ if __name__ == '__main__':
     try:
         log.info("Starting Main")
         print("Starting Main")
-        # d = get_all_spac_tickers()
-        d = get_all_ticker_lists()
-        for k, v in d.items():
-            print("%s #sym: %s"%( k, len(v)))
-        #print("d : %s"%(pprint.pformat(d)))
+
     except(KeyboardInterrupt, SystemExit):
         sys.exit()
     except Exception as e:
