@@ -28,14 +28,18 @@ from decimal import getcontext
 import logging
 import requests
 import pprint
-from .data import log, YF
+from .data import log, _get_YF
+
 
 def get_options(sym, exp_date=None, kind=None):
     return get_options_yf (sym, exp_date)
-def get_options_yf(sym, exp_date=None):
+def get_options_yf(sym, exp_dt=None):
     oc = []
+    exp_dates = None
+    exp_date = None
+    i = 0
     while True:
-        oc_d, err =  YF.get_options(sym, exp_date)
+        oc_d, err =  _get_YF().get_options(sym, date=exp_date)
         if err == None:
             if exp_dates == None:
                 #first iteration. get option chain exp dates 

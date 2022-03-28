@@ -38,12 +38,14 @@ log = getLogger("DATA")
 log.setLevel(logging.INFO)
 
 YF = None
+
 def init():
     global YF
     if not YF:
         log.info("init yahoo fin")
         YF = yf.Yahoofin ()
-
+def _get_YF():
+    return YF
 def get_financial_data(sym):
     #modules - defaultkeyStatistics,assetProfile,topHoldings,fundPerformance,fundProfile,financialData,summaryDetail
     modules="defaultkeyStatistics,assetProfile,topHoldings,fundPerformance,fundProfile,financialData,summaryDetail,summaryProfile"
