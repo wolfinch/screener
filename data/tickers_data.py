@@ -126,6 +126,7 @@ def get_filtered_ticker_list():
             st = ticker_stats.get(s)
             if st and st.get("averageDailyVolume3Month", 0) >= AVG_VOL_FILTER :
                 tl.append(s)
+        tl = ["TSLA", "NIO", "MSFT", "INO", "ARVL"]
         all_tickers["GT100M500K"] = tl
         log.info ("# GT100M500K tickers %s", len(tl))
         ## find all tickers less than $5 and GT 100M mcap and 500K volume

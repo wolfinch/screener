@@ -22,7 +22,7 @@ from tkinter import E, N
 import traceback
 from sqlalchemy import true
 from .screener_base import Screener
-import yahoofin as yf
+import data
 import time
 from datetime import datetime
 import notifiers
@@ -36,7 +36,6 @@ class OPTIONS(Screener):
     def __init__(self, name="OPTIONS", ticker_kind="ALL", interval=24*60*60, **kwarg):
         log.info ("init: name: %s ticker_kind: %s interval: %d"%(name, ticker_kind, interval))
         super().__init__(name, ticker_kind, interval)
-        self.YF = yf.Yahoofin ()
         self.filtered_list = {} #li
         self.i = 0
         self._e = 0
@@ -60,7 +59,7 @@ class OPTIONS(Screener):
         symbol=sym_list[self.i]
         try:
             ticker_stats = ticker_stats_g.get(self.name)
-            self._get_options(self.YF, symbol, ticker_stats)
+            self._get_options(symbol, ticker_stats)
             if self.i+1 >= len(sym_list):
                 self.i=0
                 log.info("retrieved options for all (%d) tickers"%(len(sym_list)))
@@ -80,7 +79,7 @@ class OPTIONS(Screener):
     def get_screened(self):
         return None
 
-    def _get_options(self, yf, sym, ticker_stats):
+    def _get_options(self, sym, ticker_stats):
         log.debug("get option chains for %s", sym)
         exp_date=None
         exp_dates=None
@@ -88,7 +87,7 @@ class OPTIONS(Screener):
         oc=[]
         try:
             while True:
-                oc_d, err =  yf.get_options(sym, exp_date)
+                oc_d, err =  data.get_options(sym, exp_date)
                 if err == None:
                     if exp_dates == None:
                         #first iteration. get option chain exp dates 

@@ -42,7 +42,7 @@ ticker_import_time = 0
 all_tickers = {"ALL":[], "MEGACAP":[], "GT50M": [], "LT50M": [], "OTC": [], "SPAC": []}
 
 
-def get_option_chain(sym, date=None, kind=None):
+def get_options(sym, date=None, kind=None):
     pass
 
 ######### ******** MAIN ****** #########
