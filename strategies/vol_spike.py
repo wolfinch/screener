@@ -20,7 +20,7 @@
 # from decimal import Decimal
 import traceback
 from .screener_base import Screener
-import yahoofin as yf
+import data
 import time
 from datetime import datetime
 import notifiers
@@ -34,7 +34,6 @@ class VOL_SPIKE(Screener):
     def __init__(self, name="VOL_SPIKE", ticker_kind="ALL", interval=300, vol_multiplier=2, notify=None, **kwarg):
         log.info ("init: name: %s ticker_kind: %s interval: %d vol_multiplier: %d"%(name, ticker_kind, interval, vol_multiplier))
         super().__init__(name, ticker_kind, interval)
-        self.YF = yf.Yahoofin ()
         self.vol_multiplier = vol_multiplier
         self.notify_kind = notify
         self.filtered_list = {} #li
@@ -109,7 +108,7 @@ class VOL_SPIKE(Screener):
         return [fmt]+list(self.filtered_list.values())
 #         return [fmt]+ft
 
-    def _get_all_tickers_info(self, yf, sym_list, ticker_stats):
+    def _get_all_tickers_info(self, sym_list, ticker_stats):
         BATCH_SIZE = 400
     #     log.debug("num tickers(%d)"%(len(sym_list)))
         s = None
@@ -117,7 +116,7 @@ class VOL_SPIKE(Screener):
         i = 0
         try:
             while i < len(sym_list):
-                ts, err =  yf.get_quotes(sym_list[i: i+BATCH_SIZE])
+                ts, err =  data.get_quotes(sym_list[i: i+BATCH_SIZE])
                 if err == None:
                     for ti in ts:
                         s = ti.get("symbol")
@@ -142,7 +141,7 @@ class VOL_SPIKE(Screener):
                                 del(ss["price"][0])                       
                     i += BATCH_SIZE
                 else:
-                    log.critical ("yf api failed err: %s i: %d num: %d"%(err, i, len(sym_list)))
+                    log.critical ("get quotes api failed err: %s i: %d num: %d"%(err, i, len(sym_list)))
                     time.sleep(2)
         except Exception as e:
             log.critical (" Exception e: %s \n s: %s ss: %s i: %d len: %d"%(e, s, ss, i, len(sym_list)))

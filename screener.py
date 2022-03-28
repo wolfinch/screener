@@ -33,7 +33,7 @@ import random
 import logging
 from  strategies import Configure
 import notifiers
-from data.tickers_data import get_all_ticker_lists
+import data
 import ui
 import gc
 
@@ -48,15 +48,17 @@ logging.getLogger("urllib3").setLevel(log.WARNING)
 
 ScreenerConfig = None
 ticker_import_time = 0
-YF = None
 
 # global Variables
 MAIN_TICK_DELAY = 1  # 500*4 milli
 
 def screener_init():
-    global YF, ScreenerConfig
+    global ScreenerConfig
     # seed random
     random.seed()
+
+    #init data source
+    data.init()
 
     # print ("config: %s"%(ScreenerConfig))
     notifier = ScreenerConfig.get("notifier")
@@ -162,7 +164,7 @@ def get_all_tickers ():
     global ticker_import_time, all_tickers
     log.debug ("get all tickers")
     if ticker_import_time + 24*3600 < int(time.time()) :
-        all_tickers = get_all_ticker_lists()
+        all_tickers = data.get_all_ticker_lists()
     return all_tickers
     
 def get_screener_data():

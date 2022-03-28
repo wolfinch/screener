@@ -21,21 +21,15 @@
 
 import sys
 import os
-sys.path.append(os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), "../pkgs"))
-
 import traceback
 import time
 from decimal import getcontext
 import logging
 import requests
 import pprint
-
-import yahoofin as yf
-from utils import getLogger
+from .data import log, get_quotes
 import nasdaq
 
-log = getLogger("DATA")
-log.setLevel(logging.INFO)
 
 # logging.getLogger("urllib3").setLevel(log.WARNING)
 AVG_VOL_FILTER = 500000
@@ -99,7 +93,6 @@ def get_filtered_ticker_list():
     global all_tickers
     BATCH_SIZE = 400
 #     log.debug("num tickers(%d)"%(len(sym_list)))
-    YF = yf.Yahoofin ()
     s = None
     ss = None
     i = 0
@@ -107,7 +100,7 @@ def get_filtered_ticker_list():
         ticker_stats = {}
         sym_list = all_tickers["ALL"]
         while i < len(sym_list):
-            ts, err =  YF.get_quotes(sym_list[i: i+BATCH_SIZE])
+            ts, err =  get_quotes(sym_list[i: i+BATCH_SIZE])
             log.info("got %d syms out of %s", i+BATCH_SIZE, len(all_tickers["ALL"]))
             if err == None:
                 for ti in ts:

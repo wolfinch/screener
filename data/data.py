@@ -21,6 +21,7 @@
 
 import sys
 import os
+sys.path.append(os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), "../../wolfinch/pkgs"))
 
 import traceback
 import time
@@ -33,18 +34,22 @@ import yahoofin as yf
 from utils import getLogger
 import nasdaq
 
-# logging.getLogger("urllib3").setLevel(log.WARNING)
-AVG_VOL_FILTER = 500000
-MCAP_100M_FILTER = 100000000
-PRICE_LT5_FILTER = 5
-ticker_import_time = 0
+log = getLogger("DATA")
+log.setLevel(logging.INFO)
 
-all_tickers = {"ALL":[], "MEGACAP":[], "GT50M": [], "LT50M": [], "OTC": [], "SPAC": []}
+YF = None
+def init():
+    global YF
+    if not YF:
+        log.info("init yahoo fin")
+        YF = yf.Yahoofin ()
 
-
-def get_option_chain(sym, date=None, kind=None):
-    pass
-
+def get_financial_data(sym):
+    #modules - defaultkeyStatistics,assetProfile,topHoldings,fundPerformance,fundProfile,financialData,summaryDetail
+    modules="defaultkeyStatistics,assetProfile,topHoldings,fundPerformance,fundProfile,financialData,summaryDetail,summaryProfile"
+    return YF.get_financial_data(sym, modules)
+def get_quotes(sym_list):
+    return YF.get_quotes(sym_list)
 ######### ******** MAIN ****** #########
 if __name__ == '__main__':
     '''
@@ -55,10 +60,10 @@ if __name__ == '__main__':
     try:
         log.info("Starting Main")
         print("Starting Main")
+        init()
         # d = get_all_spac_tickers()
-        d = get_all_ticker_lists()
-        for k, v in d.items():
-            print("%s #sym: %s"%( k, len(v)))
+        d = get_financial_data("TSLA")
+        print("fin data %s"%(str(d)))
         #print("d : %s"%(pprint.pformat(d)))
     except(KeyboardInterrupt, SystemExit):
         sys.exit()
