@@ -33,7 +33,7 @@ import random
 import logging
 from  strategies import Configure
 import notifiers
-from tickers_data import get_all_ticker_lists
+from data.tickers_data import get_all_ticker_lists
 import ui
 import gc
 
