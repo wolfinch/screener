@@ -22,6 +22,7 @@
 import sys
 import os
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), "../../wolfinch/pkgs"))
+sys.path.append(os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), "../../wolfinch/exchanges"))
 
 import traceback
 import time
@@ -30,6 +31,7 @@ import logging
 import requests
 import pprint
 
+import robinhood 
 import yahoofin as yf
 from utils import getLogger
 import nasdaq
@@ -38,12 +40,32 @@ log = getLogger("DATA")
 log.setLevel(logging.INFO)
 
 YF = None
-
+RH = None
+### init data  src module ### 
 def init():
     global YF
     if not YF:
         log.info("init yahoo fin")
         YF = yf.Yahoofin ()
+    if not RH:
+        log.info("init robinhood exchange")
+        init_rh()
+def init_rh():
+    global RH
+    ROBINHOOD_CONF = 'config/robinhood.yml'    
+    config = {"config": ROBINHOOD_CONF,
+                "products" : [{"NIO":{}}, {"AAPL":{}}],
+                "candle_interval" : 300,
+                'backfill': {
+                    'enabled'  : True,
+                    'period'   : 5,  # in Days
+                    'interval' : 300,  # 300s == 5m  
+                }
+            }
+    RH = robinhood.Robinhood(config, stream=False, auth=True)
+
+    
+### init complete ### 
 def _get_YF():
     return YF
 def get_financial_data(sym):
@@ -52,6 +74,8 @@ def get_financial_data(sym):
     return YF.get_financial_data(sym, modules)
 def get_quotes(sym_list):
     return YF.get_quotes(sym_list)
+def get_options(sym):
+    return RH.get_option_chains(sym, None, None, None)
 ######### ******** MAIN ****** #########
 if __name__ == '__main__':
     '''
@@ -64,7 +88,8 @@ if __name__ == '__main__':
         print("Starting Main")
         init()
         # d = get_all_spac_tickers()
-        d = get_financial_data("TSLA")
+        # d = get_financial_data("TSLA")
+        d = get_options("UPH")
         print("fin data %s"%(str(d)))
         #print("d : %s"%(pprint.pformat(d)))
     except(KeyboardInterrupt, SystemExit):

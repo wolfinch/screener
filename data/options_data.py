@@ -33,6 +33,8 @@ from .data import log, _get_YF
 
 def get_options(sym, exp_date=None, kind=None):
     return get_options_yf (sym, exp_date)
+def get_options_RH(sym, exp_dt=None):
+    pass
 def get_options_yf(sym, exp_dt=None):
     oc = []
     exp_dates = None
