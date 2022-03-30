@@ -28,13 +28,17 @@ from decimal import getcontext
 import logging
 import requests
 import pprint
-from .data import log, _get_YF
+from .data import log, _get_YF, _get_RH
 
 
 def get_options(sym, exp_date=None, kind=None):
     return get_options_yf (sym, exp_date)
 def get_options_RH(sym, exp_dt=None):
-    pass
+    start_date=None
+    end_date=exp_date
+    kind = "call"
+    oc_d, err =  _get_RH().get_option_chains(sym, start_date, end_date, kind)
+
 def get_options_yf(sym, exp_dt=None):
     oc = []
     exp_dates = None

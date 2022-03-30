@@ -54,7 +54,7 @@ def init_rh():
     global RH
     ROBINHOOD_CONF = 'config/robinhood.yml'    
     config = {"config": ROBINHOOD_CONF,
-                "products" : [{"NIO":{}}, {"AAPL":{}}],
+                "products" : [],
                 "candle_interval" : 300,
                 'backfill': {
                     'enabled'  : True,
@@ -68,6 +68,8 @@ def init_rh():
 ### init complete ### 
 def _get_YF():
     return YF
+def _get_RH():
+    return RH
 def get_financial_data(sym):
     #modules - defaultkeyStatistics,assetProfile,topHoldings,fundPerformance,fundProfile,financialData,summaryDetail
     modules="defaultkeyStatistics,assetProfile,topHoldings,fundPerformance,fundProfile,financialData,summaryDetail,summaryProfile"
