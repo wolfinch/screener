@@ -33,12 +33,12 @@ from .data import log, _get_YF, _get_RH
 
 def get_options(sym, exp_date=None, kind=None):
     return get_options_yf (sym, exp_date)
+
 def get_options_RH(sym, exp_dt=None):
     start_date=None
     end_date=exp_date
     kind = "call"
     oc_d, err =  _get_RH().get_option_chains(sym, start_date, end_date, kind)
-
 def get_options_yf(sym, exp_dt=None):
     oc = []
     exp_dates = None
@@ -67,6 +67,8 @@ def get_options_yf(sym, exp_dt=None):
             log.critical ("yf api failed err: %s sym: %s"%(err, sym))
             raise Exception ("yf API failed with error %s"%(err))  
     return oc
+def _normalize_oc_yf(self, oc):
+    for oc_d in oc:
 
 ######### ******** MAIN ****** #########
 if __name__ == '__main__':
