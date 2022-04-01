@@ -37,7 +37,7 @@ from utils import getLogger
 import nasdaq
 
 log = getLogger("DATA")
-log.setLevel(logging.INFO)
+log.setLevel(logging.DEBUG)
 
 YF = None
 RH = None
@@ -49,7 +49,7 @@ def init():
         YF = yf.Yahoofin ()
     if not RH:
         log.info("init robinhood exchange")
-        init_rh()
+        # init_rh()
 def init_rh():
     global RH
     ROBINHOOD_CONF = 'config/robinhood.yml'    

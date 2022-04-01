@@ -43,7 +43,7 @@ class OPTIONS(Screener):
         self._d = 0
     def update(self, sym_list, ticker_stats_g):
         #if we hit an exception, wait xxx sec to clear and try again
-        # sym_list = ["UPH", "CLOV", "MILE"]
+        sym_list = ["UPH", "CLOV", "MILE"]
         if self._e:
             if self._e + 300 < int(time.time()):
                 self._e = None

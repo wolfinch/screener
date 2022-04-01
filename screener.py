@@ -24,6 +24,7 @@ import os
 
 from strategies.screener_base import Tstats
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), "../wolfinch/pkgs"))
+sys.path.append(os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), "../wolfinch/exchanges"))
 
 import time
 import traceback

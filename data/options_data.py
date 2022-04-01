@@ -56,7 +56,7 @@ def get_options_yf(sym, exp_dt=None):
             #get option chains for expdate (for the first iter, it will be nearest exp)
             c_oc = oc_d["options"][0]
             log.debug("exp: %d num_call: %d num_put: %d"%(c_oc["expirationDate"], len(c_oc["calls"]), len(c_oc["puts"])))
-            oc.append(c_oc)
+            oc.append(_normalize_oc_yf(c_oc))
             i += 1
             if i < len(exp_dates):
                 exp_date=exp_dates[i]
@@ -67,7 +67,7 @@ def get_options_yf(sym, exp_dt=None):
             log.critical ("yf api failed err: %s sym: %s"%(err, sym))
             raise Exception ("yf API failed with error %s"%(err))  
     return oc
-def _normalize_oc_yf(self, oc):
+def _normalize_oc_yf(oc):
     def _norm_oc_fn(pc):       
         o = {
             "oi": pc.get("openInterest", 0),
@@ -77,20 +77,18 @@ def _normalize_oc_yf(self, oc):
             "ask": pc.get("ask", 0),
             "bid": pc.get("bid", 0),
             "volume": pc.get("volume", 0),
+            "itm": pc.get("inTheMoney", False),
             "expiry": expiry
         }
         return o
-    n_ocd = []
-    #loop on expiry
-    for oc_d in oc:
-        #loop on strikes
-        c_sym = oc[0]["puts"].get("contractSymbol", "")
-        expiry = c_sym[c_sym.rindex("P")-6: c_sym.rindex("P")]         
-        n_o = {"expiry": expiry,
-                "calls":  list(map (_norm_oc_fn, oc_d["calls"])),
-                "puts": list(map (_norm_oc_fn, oc_d["puts"]))}
-        n_ocd.append(n_o)
-    return n_ocd
+    #loop on strikes
+    o_e, c =  (oc["puts"], 'P') if len( oc["puts"]) else (oc["calls"], 'C')
+    c_sym =o_e[0].get("contractSymbol", "")
+    expiry = c_sym[c_sym.rindex(c)-6: c_sym.rindex(c)]         
+    n_o = {"expiry": expiry,
+            "calls":  list(map (_norm_oc_fn, oc["calls"])),
+            "puts": list(map (_norm_oc_fn, oc["puts"]))}
+    return n_o
 ######### ******** MAIN ****** #########
 if __name__ == '__main__':
     '''

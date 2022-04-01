@@ -82,18 +82,17 @@ class OPT_IV(Screener):
                     i = 0
                     for pc in puts:
                         # find the first in-the-money. and use the strike below that.
-                        if pc["inTheMoney"]:
+                        if pc["itm"]:
                             break
                         i += 1
                     if i >= len(puts):
                         i -= 1
                     pc = puts[i]
-                    iv = round(pc.get("impliedVolatility", 0), 2)
+                    iv = round(pc.get("iv", 0), 2)
                     strike = pc["strike"]
-                    oi = pc.get("openInterest", 0)
-                    price = round(pc.get("lastPrice", 0), 2)
-                    c_sym = pc.get("contractSymbol", 0)
-                    exp = c_sym[len(sym):len(sym)+6]
+                    oi = pc.get("oi", 0)
+                    price = round(pc.get("price", 0), 2)
+                    exp = pc.get("expiry", 0)
                     fs = {"symbol": sym, "time": now,
                           "strike": strike,
                           "price": price,
