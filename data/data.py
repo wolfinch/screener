@@ -49,7 +49,7 @@ def init():
         YF = yf.Yahoofin ()
     if not RH:
         log.info("init robinhood exchange")
-        # init_rh()
+        init_rh()
 def init_rh():
     global RH
     ROBINHOOD_CONF = 'config/robinhood.yml'    
@@ -76,8 +76,8 @@ def get_financial_data(sym):
     return YF.get_financial_data(sym, modules)
 def get_quotes(sym_list):
     return YF.get_quotes(sym_list)
-def get_options(sym):
-    return RH.get_option_chains(sym, None, None, None)
+# def get_options(sym):
+    # return RH.get_option_chains(sym, None, None, None)
 ######### ******** MAIN ****** #########
 if __name__ == '__main__':
     '''
@@ -92,7 +92,7 @@ if __name__ == '__main__':
         # d = get_all_spac_tickers()
         # d = get_financial_data("TSLA")
         d = get_options("UPH")
-        print("fin data %s"%(str(d)))
+        print("fin data %s"%(pprint.pformat(d)))
         #print("d : %s"%(pprint.pformat(d)))
     except(KeyboardInterrupt, SystemExit):
         sys.exit()

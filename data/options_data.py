@@ -70,15 +70,18 @@ def get_options_yf(sym, exp_dt=None):
 def _normalize_oc_yf(oc):
     def _norm_oc_fn(pc):       
         o = {
+            "expiry": expiry,
+            "strike": pc["strike"],
+            "price": round(pc.get("lastPrice", 0), 2),
             "oi": pc.get("openInterest", 0),
             "iv": round(pc.get("impliedVolatility", 0), 2),
-            "price": round(pc.get("lastPrice", 0), 2),
-            "strike": pc["strike"],
             "ask": pc.get("ask", 0),
             "bid": pc.get("bid", 0),
             "volume": pc.get("volume", 0),
             "itm": pc.get("inTheMoney", False),
-            "expiry": expiry
+            "delta": 0,
+            "theta": 0,
+            "gamma":0
         }
         return o
     #loop on strikes
