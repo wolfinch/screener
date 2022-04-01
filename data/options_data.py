@@ -68,8 +68,29 @@ def get_options_yf(sym, exp_dt=None):
             raise Exception ("yf API failed with error %s"%(err))  
     return oc
 def _normalize_oc_yf(self, oc):
+    def _norm_oc_fn(pc):       
+        o = {
+            "oi": pc.get("openInterest", 0),
+            "iv": round(pc.get("impliedVolatility", 0), 2),
+            "price": round(pc.get("lastPrice", 0), 2),
+            "strike": pc["strike"],
+            "ask": pc.get("ask", 0),
+            "bid": pc.get("bid", 0),
+            "volume": pc.get("volume", 0),
+            "expiry": expiry
+        }
+        return o
+    n_ocd = []
+    #loop on expiry
     for oc_d in oc:
-
+        #loop on strikes
+        c_sym = oc[0]["puts"].get("contractSymbol", "")
+        expiry = c_sym[c_sym.rindex("P")-6: c_sym.rindex("P")]         
+        n_o = {"expiry": expiry,
+                "calls":  list(map (_norm_oc_fn, oc_d["calls"])),
+                "puts": list(map (_norm_oc_fn, oc_d["puts"]))}
+        n_ocd.append(n_o)
+    return n_ocd
 ######### ******** MAIN ****** #########
 if __name__ == '__main__':
     '''
