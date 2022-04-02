@@ -131,6 +131,8 @@ def _normalize_oc_rh(oc_l):
                 "puts": list(map (_norm_oc_fn, filter(lambda o:  o["type"] == "put", oc)))}
         if len(n_o["calls"]) == 0 and len(n_o["puts"]) == 0:
             continue
+        n_o["calls"].sort(key=lambda o: o["strike"])
+        n_o["puts"].sort(key=lambda o: o["strike"])
         n_o_l.append(n_o)
     n_o_l.sort(key=lambda o: o["expiry"])
     return n_o_l

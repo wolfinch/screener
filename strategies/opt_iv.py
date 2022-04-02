@@ -32,26 +32,32 @@ log.setLevel(log.DEBUG)
 MAX_SCREENED_TICKERS = 50
 
 class OPT_IV(Screener):
-    def __init__(self, name="OPT_IV", ticker_kind="ALL", interval=24*60*60, multiplier=1, data="", notify=None, **kwarg):
+    def __init__(self, name="OPT_IV", ticker_kind="ALL", interval=24*60*60, multiplier=1, options_data="", ticker_data="", notify=None, **kwarg):
         log.info("init: name: %s ticker_kind: %s interval: %d multiplier: %d data_src_name: %s" % (
-            name, ticker_kind, interval, multiplier, data))
+            name, ticker_kind, interval, multiplier, options_data))
         super().__init__(name, ticker_kind, interval)
         self.multiplier = multiplier
-        self.data_src_name = data
+        self.options_data_src_name = options_data
+        self.ticker_data_src_name = ticker_data
         self.notify_kind = notify
         self.filtered_list = {}  # li
 
     def update(self, sym_list, ticker_stats_g):
         # we don't update data_src_name here. Rather self.data_src_name is our data_src_name source
         try:
-            t_data = ticker_stats_g.get(self.data_src_name)
+            o_data = ticker_stats_g.get(self.options_data_src_name)
+            if not o_data:
+                log.error("ticker data_src_name from screener %s not updated" % (
+                    self.options_data_src_name))
+                return False
+            t_data = ticker_stats_g.get(self.ticker_data_src_name)
             if not t_data:
                 log.error("ticker data_src_name from screener %s not updated" % (
-                    self.data_src_name))
-                return False
+                    self.ticker_data_src_name))
+                return False                
             # make sure all data_src_name available for our list
             # TODO: FIXME: optimize this
-            if not t_data.updated:
+            if not t_data.updated or not o_data.updated:
                 log.error("data_src_name is still being updated")
                 return False
             return True
@@ -62,19 +68,28 @@ class OPT_IV(Screener):
     def screen(self, sym_list, ticker_stats_g):
         # Screen: Total_cash_balance > cur_market_cap
         # 1.get data_src_name from self.data_src_name
-        ticker_stats = ticker_stats_g.get(self.data_src_name)
+        ticker_stats = ticker_stats_g.get(self.ticker_data_src_name)
         if not ticker_stats:
             raise
-
+        options_stats = ticker_stats_g.get(self.options_data_src_name)
+        if not options_stats:
+            raise    
         # 2. for each sym, if cash_pos > market_cap -> add filtered l
         self.filtered_list = {}
         now = int(time.time())
         try:
             fs_l = []
             for sym in sym_list:
-                sym_d = ticker_stats.get(sym)
+                #2.0 get curr price:
+                price = 0
+                sum_det = ticker_stats[sym].get("summaryDetail")
+                if sum_det:
+                    price_r=sum_det.get("previousClose")
+                    if price_r:
+                        price=round(float(price_r.get("raw")), 2)             
+                sym_d = options_stats.get(sym)
                 # log.debug("screen : %s \n df %s"%(sym, sym_d))
-                if not sym_d or len(sym_d) == 0:
+                if not sym_d or len(sym_d) == 0 or price == 0:
                     log.error("unable to get options for sym %s" % (sym))
                     continue
                 puts = sym_d[0].get("puts")
@@ -82,7 +97,7 @@ class OPT_IV(Screener):
                     i = 0
                     for pc in puts:
                         # find the first in-the-money. and use the strike below that.
-                        if pc["itm"]:
+                        if pc["strike"] > price:
                             break
                         i += 1
                     if i >= len(puts):
