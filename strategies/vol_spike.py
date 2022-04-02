@@ -44,7 +44,7 @@ class VOL_SPIKE(Screener):
             return False
         try:
             ticker_stats = ticker_stats_g.get(self.name)
-            self._get_all_tickers_info(self.YF, sym_list, ticker_stats)
+            self._get_all_tickers_info(sym_list, ticker_stats)
             return True
         except Exception as e:
             log.critical("exception while get screen e: %s exception: %s" % (e, traceback.format_exc()))
