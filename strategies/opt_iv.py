@@ -47,18 +47,18 @@ class OPT_IV(Screener):
         try:
             o_data = ticker_stats_g.get(self.options_data_src_name)
             if not o_data:
-                log.error("ticker data_src_name from screener %s not updated" % (
+                log.error("ticker options_data_src_name from screener %s not updated" % (
                     self.options_data_src_name))
                 return False
             t_data = ticker_stats_g.get(self.ticker_data_src_name)
             if not t_data:
-                log.error("ticker data_src_name from screener %s not updated" % (
+                log.error("ticker ticker_data_src_name from screener %s not updated" % (
                     self.ticker_data_src_name))
                 return False                
             # make sure all data_src_name available for our list
             # TODO: FIXME: optimize this
             if not t_data.updated or not o_data.updated:
-                log.error("data_src_name is still being updated")
+                log.error("data_src_name is still being updated t_data.updated: %s not o_data.updated: %s"%(t_data.updated, o_data.updated))
                 return False
             return True
         except Exception as e:
