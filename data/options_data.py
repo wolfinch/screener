@@ -103,7 +103,7 @@ def _normalize_oc_rh(oc_l):
             v = q.get("vega")
             vega = 0
             if  v != None:
-                vega = round(float(v), 4)                                                         
+                vega = round(float(v), 4)                          
             o = {
                 "expiry": expiry,
                 "strike": strike_price,
