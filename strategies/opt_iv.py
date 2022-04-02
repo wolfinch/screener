@@ -73,7 +73,7 @@ class OPT_IV(Screener):
             fs_l = []
             for sym in sym_list:
                 sym_d = ticker_stats.get(sym)
-                log.debug("screen : %s \n df %s"%(sym, sym_d))
+                # log.debug("screen : %s \n df %s"%(sym, sym_d))
                 if not sym_d or len(sym_d) == 0:
                     log.error("unable to get options for sym %s" % (sym))
                     continue

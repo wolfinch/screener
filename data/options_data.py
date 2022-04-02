@@ -42,11 +42,15 @@ def get_options_RH(sym, exp_dt=None):
         return _normalize_oc_rh(oc_d)
 def _normalize_oc_rh(oc_l):
     def _norm_oc_fn(pc):
-        q = pc.get("quote")
+        strike_price = 0
+        v = pc.get("strike_price")
+        if  v != None:
+            strike_price = round(float(v), 2)        
+        q = pc.get("quote")        
         if not q:
             o = {
                 "expiry": expiry,
-                "strike": pc["strike_price"],
+                "strike": strike_price,
                 "price": 0,
                 "oi": 0,
                 "iv": 0,
@@ -59,15 +63,7 @@ def _normalize_oc_rh(oc_l):
                 "gamma": 0,
                 "vega": 0
             }            
-        else:
-            v = q.get("implied_volatility")
-            iv = 0
-            if  v != None:
-                iv = round(float(v), 2)
-            v = pc.get("strike_price")
-            strike_price = 0
-            if  v != None:
-                strike_price = round(float(strike_price), 2)            
+        else:           
             v = q.get("mark_price", 0)
             mark_price = 0
             if  v != None:
@@ -75,7 +71,11 @@ def _normalize_oc_rh(oc_l):
             v = q.get("open_interest", 0)
             oi = 0
             if  v != None:
-                oi = round(float(v), 2)            
+                oi = int(v)
+            v = q.get("implied_volatility")
+            iv = 0
+            if  v != None:
+                iv = round(float(v), 2)                  
             v = q.get("ask_price", 0)
             ask = 0
             if  v != None:
@@ -108,7 +108,7 @@ def _normalize_oc_rh(oc_l):
                 "expiry": expiry,
                 "strike": strike_price,
                 "price": mark_price,
-                "oi": int(oi),
+                "oi": oi,
                 "iv": iv,
                 "ask": ask,
                 "bid": bid,
@@ -129,7 +129,10 @@ def _normalize_oc_rh(oc_l):
         n_o = {"expiry": expiry,
                 "calls":  list(map (_norm_oc_fn, filter(lambda o:  o["type"] == "call", oc))),
                 "puts": list(map (_norm_oc_fn, filter(lambda o:  o["type"] == "put", oc)))}
+        if len(n_o["calls"]) == 0 and len(n_o["puts"]) == 0:
+            continue
         n_o_l.append(n_o)
+    n_o_l.sort(key=lambda o: o["expiry"])
     return n_o_l
 
 def get_options_yf(sym, exp_dt=None):
