@@ -84,7 +84,7 @@ def get_all_ticker_lists ():
                 log.info("SPAC (%d) tickers imported"%(len(t_l)))
             #get filtered list based on vol
             # get_filtered_ticker_list()
-            tl = ["TSLA", "NIO", "MSFT", "INO", "ARVL"]
+            tl = ["UPH", "ARVL"]
             all_tickers["GT100M500KLT5"] = tl             
             ticker_import_time = int(time.time())
         except Exception :

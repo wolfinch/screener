@@ -32,13 +32,106 @@ from .data import log, _get_YF, _get_RH
 
 
 def get_options(sym, exp_date=None, kind=None):
-    return get_options_yf (sym, exp_date)
+    return get_options_RH (sym, exp_date)
 
 def get_options_RH(sym, exp_dt=None):
     start_date=None
-    end_date=exp_date
-    kind = "call"
-    oc_d, err =  _get_RH().get_option_chains(sym, start_date, end_date, kind)
+    end_date=exp_dt
+    oc_d =  _get_RH().get_option_chains(sym, start_date, end_date, None)
+    if  oc_d:
+        return _normalize_oc_rh(oc_d)
+def _normalize_oc_rh(oc_l):
+    def _norm_oc_fn(pc):
+        q = pc.get("quote")
+        if not q:
+            o = {
+                "expiry": expiry,
+                "strike": pc["strike_price"],
+                "price": 0,
+                "oi": 0,
+                "iv": 0,
+                "ask": 0,
+                "bid": 0,
+                "volume": 0,
+                "itm": False,
+                "delta": 0,
+                "theta": 0,
+                "gamma": 0,
+                "vega": 0
+            }            
+        else:
+            v = q.get("implied_volatility")
+            iv = 0
+            if  v != None:
+                iv = round(float(v), 2)
+            v = pc.get("strike_price")
+            strike_price = 0
+            if  v != None:
+                strike_price = round(float(strike_price), 2)            
+            v = q.get("mark_price", 0)
+            mark_price = 0
+            if  v != None:
+                mark_price = round(float(v), 2)            
+            v = q.get("open_interest", 0)
+            oi = 0
+            if  v != None:
+                oi = round(float(v), 2)            
+            v = q.get("ask_price", 0)
+            ask = 0
+            if  v != None:
+                ask = round(float(v), 2)            
+            v = q.get("bid_price", 0)
+            bid = 0
+            if  v != None:
+                bid = round(float(v), 2)            
+            v = q.get("volume", 0)
+            vol = 0
+            if  v != None:
+                vol = round(float(v), 2)            
+            v = q.get("delta")
+            delta = 0
+            if  v != None:
+                delta = round(float(v), 4)
+            v = q.get("delta")
+            theta = 0
+            if  v != None:
+                theta = round(float(v), 4)       
+            v = q.get("gamma")
+            gamma = 0
+            if  v != None:
+                gamma = round(float(v), 4)       
+            v = q.get("vega")
+            vega = 0
+            if  v != None:
+                vega = round(float(v), 4)                                                         
+            o = {
+                "expiry": expiry,
+                "strike": strike_price,
+                "price": mark_price,
+                "oi": int(oi),
+                "iv": iv,
+                "ask": ask,
+                "bid": bid,
+                "volume": vol,
+                "itm": pc.get("inTheMoney", False),
+                "delta": delta,
+                "theta": theta,
+                "gamma": gamma,
+                "vega": vega
+            }
+        return o
+    #loop on strikes
+    n_o_l = []
+    for exp, oc in oc_l.items():
+        # exp -- 2022-03-12, change to 220312
+        e_l = exp.split("-")
+        expiry = e_l[0][2:]+e_l[1]+e_l[2]
+        n_o = {"expiry": expiry,
+                "calls":  list(map (_norm_oc_fn, filter(lambda o:  o["type"] == "call", oc))),
+                "puts": list(map (_norm_oc_fn, filter(lambda o:  o["type"] == "put", oc)))}
+        n_o_l.append(n_o)
+    return n_o_l
+
 def get_options_yf(sym, exp_dt=None):
     oc = []
     exp_dates = None
