@@ -155,11 +155,11 @@ td { font-size: .2em; }
 		var fmt = data_d["format"]
 		var data = data_d["data"]
 		var sort = data_d["sort"]
+		var hidden = data_d["hidden"]
 		if (!data || !fmt) {
 			console.log("invalid data or format")
 			return;
 		}
-		var visible = []
 
  		if ($.fn.dataTable.isDataTable('#'+scrn_name)) { 			
  			var table = $.fn.dataTable.tables({ api: true }).table('#'+scrn_name); 
@@ -198,7 +198,15 @@ td { font-size: .2em; }
 					},
 					name: "symbol"});		
 			} else {
-				columns.push({title : fmt[key], data : key, name:key});
+				visible = true
+				if (hidden && hidden.length > 0) {
+					for (i=0; i < hidden.length; i++) {
+						if (key == hidden[i]) {
+							visible = false
+						}
+					}
+				}
+				columns.push({title : fmt[key], data : key, name:key, 'visible' : visible});
 			}
 		});
 		columns.push({title : fmt["time"], data : "time", 
@@ -219,8 +227,9 @@ td { font-size: .2em; }
 				} else {
 					return "-";
 				}
-			},
-			name: "time", 'visible' : false });
+			}
+		});
+			// name: "time", 'visible' : false });
 		// sort_idx = columns.length-1;
 		// if  (sort){
 		// 	for ( i=0; i< columns.length; i++) {
