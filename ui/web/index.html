@@ -77,8 +77,19 @@ td { font-size: .2em; }
 	function add_screener_tables(scrn_data) {
 		Object.keys(scrn_data).forEach(function (scrn_name) {
 			if (!scrn_data[scrn_name] || scrn_data[scrn_name].length == 0) {
+				console.log("invalid data for "+scrn_name)
 				return;
 			}
+
+			if (!scrn_data[scrn_name]["format"] || scrn_data[scrn_name]["format"].length == 0) {
+				console.log("invalid screen format for "+scrn_name)
+				return;
+			}
+
+			if (!scrn_data[scrn_name]["data"] || scrn_data[scrn_name]["data"].length == 0) {
+				console.log("invalid screen data for "+scrn_name)
+				return;
+			}			
 			
 			if ($("#"+scrn_name).length) {
 				console.log("table exsists "+scrn_name)
