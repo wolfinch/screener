@@ -105,7 +105,7 @@ class VOL_SPIKE(Screener):
 #              ]
         fmt = {"symbol": "symbol", "time": "time", "last_price": "last price", 
                "price_change": "% price", "cur_price_change": "% cur price", "vol_change": "% vol", "cur_vol_change": "% cur vol"}
-        return [fmt]+list(self.filtered_list.values())
+        return {"format":fmt, "data": list(self.filtered_list.values()), "sort": "time"}
 #         return [fmt]+ft
 
     def _get_all_tickers_info(self, sym_list, ticker_stats):
