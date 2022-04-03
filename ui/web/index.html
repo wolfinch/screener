@@ -86,7 +86,7 @@ td { font-size: .2em; }
 			}
 			
 			var th = "";
-			for (i=0; i<Object.keys(scrn_data[scrn_name][0]).length; i++) {
+			for (i=0; i<Object.keys(scrn_data[scrn_name]["format"]).length; i++) {
 				th += '<th style="width: auto;">0</th>'
 			}
 			
@@ -139,16 +139,18 @@ td { font-size: .2em; }
 
 	}	
 
-	function load_tables(scrn_name, data) {
-		console.log("load scrn_name "+scrn_name+" data : "+data);
-				
+	function load_tables(scrn_name, data_d) {
+		console.log("load scrn_name "+scrn_name+" data : "+data_d);
+		var fmt = data_d["format"]
+		var data = data_d["data"]
+		var sort = data_d["sort"]
  		if ($.fn.dataTable.isDataTable('#'+scrn_name)) { 			
  			var table = $.fn.dataTable.tables({ api: true }).table('#'+scrn_name); 
 			// previously init, just reload once and don't mess with timers
 			//table.ajax.reload(null, false); // user paging is not reset on reload
 			//table.data.apply();
-			data.splice(0, 1);		
-			table.clear().draw().rows.add(data).columns.adjust().draw();
+			// data.splice(0, 1);		
+			table.clear().draw().rows.add(fmt).columns.adjust().draw();
 			return;
 		}
 
@@ -159,12 +161,12 @@ td { font-size: .2em; }
 		 
 		var columns = [];//{"title":"time", data: "time", name: "time", "visible": false}];
 		var sort_idx = 0;			 
-		Object.keys(data[0]).forEach(function(key, idx){
+		Object.keys(fmt).forEach(function(key, idx){
 			//console.log("idx - "+idx)
 			if (key == "time") {
 				//sort_idx = idx
 			} else if (key == "symbol") {
-				columns.push({title : data[0]["symbol"], data : "symbol", 
+				columns.push({title : fmt["symbol"], data : "symbol", 
 					render : function(symbol, type, row) {
 						if (type == "sort") {
 							//console.log(date.unix());																	
@@ -176,10 +178,10 @@ td { font-size: .2em; }
 					},
 					name: "symbol"});		
 			} else {
-				columns.push({title : data[0][key], data : key, name:key});
+				columns.push({title : fmt[key], data : key, name:key});
 			}
 		});
-		columns.push({title : data[0]["time"], data : "time", 
+		columns.push({title : fmt["time"], data : "time", 
 			render : function(time, type, row) {
 				if (time != undefined
 						&& time != 'None'
@@ -200,7 +202,16 @@ td { font-size: .2em; }
 			},
 			name: "time", 'visible' : false });
 		sort_idx = columns.length-1;
-		data.splice(0, 1);		
+		if  (sort){
+			for ( i=0; i< columns.length; i++) {
+				if (columns[i].data == sort) {
+					sort_idx = i
+					break
+				}
+			}
+		}
+		// data.splice(0, 1);		
+		data = data_d["data"]
 		table = $('#'+scrn_name).DataTable(
 				{
 					data : data,

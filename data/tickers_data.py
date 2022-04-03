@@ -83,10 +83,10 @@ def get_all_ticker_lists ():
                 all_tickers["SPAC"] = t_l
                 log.info("SPAC (%d) tickers imported"%(len(t_l)))
             #get filtered list based on vol
-            get_filtered_ticker_list()
-            # tl = ["UPH", "ARVL"]
-            # all_tickers["GT100M500KLT5"] = tl
-            # all_tickers["GT100M500K"] = tl
+            # get_filtered_ticker_list()
+            tl = ["UPH", "ARVL"]
+            all_tickers["GT100M500KLT5"] = tl
+            all_tickers["GT100M500K"] = tl
             ticker_import_time = int(time.time())
         except Exception :
             log.critical("exception occured while getting filtered list")

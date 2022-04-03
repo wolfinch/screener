@@ -136,6 +136,6 @@ class OPT_IV(Screener):
         #              ]
         fmt = {"symbol": "Symbol", "time": "Time", "strike": "Strike",
                "price": "Price", "iv": "IV", "oi": "OI", "expiry": "Expiry"}
-        return [fmt]+list(self.filtered_list.values())
+        return {"format": fmt, "sort": "oi", "data": list(self.filtered_list.values())}
 
 # EOF
