@@ -103,10 +103,9 @@ class VOL_SPIKE(Screener):
 #          {"symbol": "aapl", "time": 1616585400, "last_price": 10.2, "price_change": "10", "vol_change": "2", "cur_price_change": "20", "cur_vol_change": "4"},
 #          {"symbol": "codx", "time": 1616595400, "last_price": "13.2", "price_change": "20", "vol_change": "20", "cur_price_change": "30", "cur_vol_change": "30"}            
 #              ]
-        fmt = {"symbol": "symbol", "time": "time", "last_price": "last price", 
-               "price_change": "% price", "cur_price_change": "% cur price", "vol_change": "% vol", "cur_vol_change": "% cur vol"}
+        fmt = {"symbol": "symbol", "last_price": "last price", 
+               "price_change": "% price", "cur_price_change": "% cur price", "vol_change": "% vol", "cur_vol_change": "% cur vol", "time": "time"}
         return {"format":fmt, "data": list(self.filtered_list.values()), "sort": "time"}
-#         return [fmt]+ft
 
     def _get_all_tickers_info(self, sym_list, ticker_stats):
         BATCH_SIZE = 400

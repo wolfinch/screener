@@ -158,8 +158,8 @@ class CASH_MCAP(Screener):
 #          {"symbol": "aapl", "time": 1616585400, "last_price": 10.2, "price_change": "10", "vol_change": "2", "cur_price_change": "20", "cur_vol_change": "4"},
 #          {"symbol": "codx", "time": 1616595400, "last_price": "13.2", "price_change": "20", "vol_change": "20", "cur_price_change": "30", "cur_vol_change": "30"}            
 #              ]
-        fmt = {"symbol": "Symbol", "time": "Time", "cur_mcap": "Market Cap",
-         "total_cash": "Total Cash", "tcash_pct": "Cash %", "price": "Price", "ftwh": "High", "ftwl": "Low", "ptb": "Price2Book"}
+        fmt = {"symbol": "Symbol","cur_mcap": "Market Cap",
+         "total_cash": "Total Cash", "tcash_pct": "Cash %", "price": "Price", "ftwh": "High", "ftwl": "Low", "ptb": "Price2Book",  "time": "Time" }
         return {"format":fmt, "data":list(self.filtered_list.values()), "sort": "time"}
 
 #EOF
