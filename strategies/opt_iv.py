@@ -123,7 +123,7 @@ class OPT_IV(Screener):
                     #                     "total_cash": "%s"%(tcash_s)}
                     # notifiers.notify(self.notify_kind, self.name, notify_msg)
             # now that we have list of opt. sort the list and get only top 25
-            fs_l.sort(reverse=True, key=lambda e: e["iv"])
+            fs_l.sort(reverse=True, key=lambda e: e["oi"])
             self.filtered_list = {}  # clear list
             for fs in fs_l[:MAX_SCREENED_TICKERS]:
                 self.filtered_list[fs["symbol"]] = fs
