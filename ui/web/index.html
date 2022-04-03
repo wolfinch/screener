@@ -155,6 +155,10 @@ td { font-size: .2em; }
 		var fmt = data_d["format"]
 		var data = data_d["data"]
 		var sort = data_d["sort"]
+		if (!data || !fmt) {
+			console.log("invalid data or format")
+			return;
+		}
  		if ($.fn.dataTable.isDataTable('#'+scrn_name)) { 			
  			var table = $.fn.dataTable.tables({ api: true }).table('#'+scrn_name); 
 			// previously init, just reload once and don't mess with timers
