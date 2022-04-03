@@ -40,7 +40,7 @@ ticker_import_time = 0
 all_tickers = {"ALL":[], "MEGACAP":[], "GT50M": [], "LT50M": [], "OTC": [], "SPAC": []}
 def get_all_ticker_lists ():
     global ticker_import_time, all_tickers
-    log.debug ("get all tickers")
+    # log.debug ("get all tickers")
     if ticker_import_time + 24*3600 < int(time.time()) :
         log.info ("renew tickers list")
 #         t_l = nasdaq.get_all_tickers_gt50m()
