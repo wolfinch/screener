@@ -183,8 +183,36 @@ td { font-size: .2em; }
 			if (sort && key == sort) {
 				sort_idx = idx
 			}
+			visible = true
+			if (hidden && hidden.length > 0) {
+				for (i=0; i < hidden.length; i++) {
+					if (key == hidden[i]) {
+						visible = false
+					}
+				}
+			}			
 			if (key == "time") {
 				//sort_idx = idx
+				columns.push({title : fmt["time"], data : "time", 
+				render : function(time, type, row) {
+					if (time != undefined
+							&& time != 'None'
+							&& time != null) {
+						date = moment(time*1000);
+						//console.log(date.fromNow());
+
+						if (type == "sort") {
+							//console.log(date.unix());																	
+							return date.unix();
+						} else {
+							return date.fromNow();
+							//return data.closed_time;
+						}
+					} else {
+						return "-";
+					}
+				},
+				name: "time", 'visible' : visible });				
 			} else if (key == "symbol") {
 				columns.push({title : fmt["symbol"], data : "symbol", 
 					render : function(symbol, type, row) {
@@ -198,38 +226,10 @@ td { font-size: .2em; }
 					},
 					name: "symbol"});		
 			} else {
-				visible = true
-				if (hidden && hidden.length > 0) {
-					for (i=0; i < hidden.length; i++) {
-						if (key == hidden[i]) {
-							visible = false
-						}
-					}
-				}
 				columns.push({title : fmt[key], data : key, name:key, 'visible' : visible});
 			}
 		});
-		columns.push({title : fmt["time"], data : "time", 
-			render : function(time, type, row) {
-				if (time != undefined
-						&& time != 'None'
-						&& time != null) {
-					date = moment(time*1000);
-					//console.log(date.fromNow());
 
-					if (type == "sort") {
-						//console.log(date.unix());																	
-						return date.unix();
-					} else {
-						return date.fromNow();
-						//return data.closed_time;
-					}
-				} else {
-					return "-";
-				}
-			}
-		});
-			// name: "time", 'visible' : false });
 		// sort_idx = columns.length-1;
 		// if  (sort){
 		// 	for ( i=0; i< columns.length; i++) {
