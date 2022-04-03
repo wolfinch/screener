@@ -159,6 +159,8 @@ td { font-size: .2em; }
 			console.log("invalid data or format")
 			return;
 		}
+		var visible = []
+
  		if ($.fn.dataTable.isDataTable('#'+scrn_name)) { 			
  			var table = $.fn.dataTable.tables({ api: true }).table('#'+scrn_name); 
 			// previously init, just reload once and don't mess with timers
@@ -178,6 +180,9 @@ td { font-size: .2em; }
 		var sort_idx = 0;			 
 		Object.keys(fmt).forEach(function(key, idx){
 			//console.log("idx - "+idx)
+			if (sort && key == sort) {
+				sort_idx = idx
+			}
 			if (key == "time") {
 				//sort_idx = idx
 			} else if (key == "symbol") {
@@ -216,15 +221,15 @@ td { font-size: .2em; }
 				}
 			},
 			name: "time", 'visible' : false });
-		sort_idx = columns.length-1;
-		if  (sort){
-			for ( i=0; i< columns.length; i++) {
-				if (columns[i].data == sort) {
-					sort_idx = i
-					break
-				}
-			}
-		}
+		// sort_idx = columns.length-1;
+		// if  (sort){
+		// 	for ( i=0; i< columns.length; i++) {
+		// 		if (columns[i].data == sort) {
+		// 			sort_idx = i
+		// 			break
+		// 		}
+		// 	}
+		// }
 		// data.splice(0, 1);		
 		data = data_d["data"]
 		table = $('#'+scrn_name).DataTable(

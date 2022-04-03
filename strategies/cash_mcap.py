@@ -160,6 +160,6 @@ class CASH_MCAP(Screener):
 #              ]
         fmt = {"symbol": "Symbol", "time": "Time", "cur_mcap": "Market Cap",
          "total_cash": "Total Cash", "tcash_pct": "Cash %", "price": "Price", "ftwh": "High", "ftwl": "Low", "ptb": "Price2Book"}
-        return [fmt]+list(self.filtered_list.values())
+        return {"format":fmt, "data":list(self.filtered_list.values()), "sort": "time"}
 
 #EOF
