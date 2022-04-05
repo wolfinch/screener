@@ -27,7 +27,7 @@ from sqlalchemy.orm import mapper
 log = getLogger ('SCREENER-DB')
 log.setLevel (log.DEBUG)
 
-class CandlesDb(object):
+class ScreenerDb(object):
     def __init__ (self, ohlcCls, screener_name, read_only=False):
         self.OHLCCls = ohlcCls
         self.db = init_db(read_only)
@@ -38,14 +38,8 @@ class CandlesDb(object):
             # Create a table with the appropriate Columns
             log.info ("creating table: %s"%(self.table_name))            
             self.table = Table(self.table_name, self.db.metadata,
-#                 Column('Id', Integer, primary_key=True),
-#                 Column('time', Integer, nullable=False),
-                Column('time', Integer, primary_key=True, nullable=False),                
-                Column('open', Numeric, default=0),
-                Column('high', Numeric, default=0),
-                Column('low', Numeric, default=0),
-                Column('close', Numeric, default=0),
-                Column('volume', Numeric, default=0))
+                Column('symbol', String, primary_key=True, nullable=False),                
+                Column('data', Text))
             # Implement the creation
             self.db.metadata.create_all(self.db.engine, checkfirst=True)   
         else:
@@ -55,12 +49,8 @@ class CandlesDb(object):
             # HACK ALERT: to support multi-table with same class on sqlalchemy mapping
             class T (ohlcCls):
                 def __init__ (self, c):
-                    self.time = c.time
-                    self.open = c.open
-                    self.high = c.high
-                    self.low = c.low
-                    self.close = c.close
-                    self.volume = c.volume
+                    self.symbol = c.symbol
+                    self.data = c.data
             self.ohlcCls = T
             self.mapping = mapper(self.ohlcCls, self.table)
         except Exception as e:
@@ -69,12 +59,12 @@ class CandlesDb(object):
             raise e
                     
     def __str__ (self):
-        return "{time: %s, open: %g, high: %g, low: %g, close: %g, volume: %g}"%(
-            str(self.time), self.open, self.high, self.low, self.close, self.volume)
+        return "{symbol: %s, data: %s}"%(
+            str(self.symbol), str(self.data))
 
 
-    def db_save_candle (self, candle):
-        log.debug ("Adding candle to db")
+    def db_save_screener (self, candle):
+        log.debug ("Adding screener to db")
 #         self.db.connection.execute(self.table.insert(), {'close':candle.close, 'high':candle.high,
 #                                                               'low':candle.low, 'open':candle.open, 
 #                                                               'time':candle.time, 'volume':candle.volume})
@@ -82,7 +72,7 @@ class CandlesDb(object):
         self.db.session.merge (c)
         self.db.session.commit()
         
-    def db_save_candles (self, candles):
+    def db_save_screener (self, candles):
         log.debug ("Adding candle list to db")
 #         self.db.connection.execute(self.table.insert(), map(lambda cdl: 
 #                                                             {'close':cdl.close, 'high':cdl.high,
