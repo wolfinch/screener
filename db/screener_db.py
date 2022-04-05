@@ -28,17 +28,17 @@ log = getLogger ('SCREENER-DB')
 log.setLevel (log.DEBUG)
 
 class ScreenerDb(object):
-    def __init__ (self, ohlcCls, screener_name, read_only=False):
-        self.OHLCCls = ohlcCls
+    def __init__ (self, screenerCls, screener_name, read_only=False):
+        self.screenerCls = screenerCls
         self.db = init_db(read_only)
-        log.info ("init candlesdb: %s "%(screener_name))
+        log.info ("init screenerDb : %s "%(screener_name))
         
-        self.table_name = "candle_%s"%(screener_name)
+        self.table_name = "screener_%s"%(screener_name)
         if not self.db.engine.dialect.has_table(self.db.engine, self.table_name):  # If table don't exist, Create.
             # Create a table with the appropriate Columns
             log.info ("creating table: %s"%(self.table_name))            
             self.table = Table(self.table_name, self.db.metadata,
-                Column('symbol', String, primary_key=True, nullable=False),                
+                Column('symbol', String(16), primary_key=True, nullable=False),                
                 Column('data', Text))
             # Implement the creation
             self.db.metadata.create_all(self.db.engine, checkfirst=True)   
@@ -47,73 +47,38 @@ class ScreenerDb(object):
             self.table = self.db.metadata.tables[self.table_name]
         try:
             # HACK ALERT: to support multi-table with same class on sqlalchemy mapping
-            class T (ohlcCls):
+            class T (screenerCls):
                 def __init__ (self, c):
                     self.symbol = c.symbol
                     self.data = c.data
-            self.ohlcCls = T
-            self.mapping = mapper(self.ohlcCls, self.table)
+            self.screenerCls = T
+            self.mapping = mapper(self.screenerCls, self.table)
         except Exception as e:
             log.debug ("mapping failed with except: %s \n trying once again with non_primary mapping"%(e))
-#             self.mapping = mapper(ohlcCls, self.table, non_primary=True)            
+#             self.mapping = mapper(screenerCls, self.table, non_primary=True)            
             raise e
-                    
     def __str__ (self):
         return "{symbol: %s, data: %s}"%(
             str(self.symbol), str(self.data))
-
-
-    def db_save_screener (self, candle):
+    def db_save_screener (self, data):
         log.debug ("Adding screener to db")
-#         self.db.connection.execute(self.table.insert(), {'close':candle.close, 'high':candle.high,
-#                                                               'low':candle.low, 'open':candle.open, 
-#                                                               'time':candle.time, 'volume':candle.volume})
-        c = self.ohlcCls(candle)
+        c = self.screenerCls(data)
         self.db.session.merge (c)
         self.db.session.commit()
-        
-    def db_save_screener (self, candles):
-        log.debug ("Adding candle list to db")
-#         self.db.connection.execute(self.table.insert(), map(lambda cdl: 
-#                                                             {'close':cdl.close, 'high':cdl.high,
-#                                                               'low':cdl.low, 'open':cdl.open, 
-#                                                               'time':cdl.time, 'volume':cdl.volume}, candles))
-#         cdl_list = map(lambda cdl: 
-#                                         {'close':cdl.close, 'high':cdl.high,
-#                                             'low':cdl.low, 'open':cdl.open, 
-#                                             'time':cdl.time, 'volume':cdl.volume}, candles)
-        for cdl in candles:
-            c = self.ohlcCls(cdl)
+    def db_save_screener (self, data_l):
+        log.debug ("Adding data_l list to db")
+        for cdl in data_l:
+            c = self.screenerCls(cdl)
             self.db.session.merge (c)
         self.db.session.commit()
-        
-    def db_get_candles_after_time(self, after):
-        log.debug ("retrieving candles after time: %d from db"%(after))
+    def db_get_all_data (self):
+        log.debug ("retrieving data from db")
         try:
-            res_list = []            
-            ResultSet = self.db.session.query(self.mapping).filter(self.ohlcCls.time >= after).order_by(self.ohlcCls.time).all()
-            log.info ("Retrieved %d candles for table: %s"%(len(ResultSet), self.table_name))
+            ResultSet = self.db.session.query(self.mapping).order_by(self.screenerCls.symbol).all()
+            log.info ("Retrieved %d screener data for table: %s"%(len(ResultSet), self.table_name))
             
             if (len(ResultSet)):
-                res_list = [self.OHLCCls(c.time, c.open, c.high, c.low, c.close, c.volume) for c in ResultSet]
-            #clear cache now
-            self.db.session.expire_all()
-            return res_list
-        except Exception as e:
-            print(str(e))          
-        
-        
-    def db_get_all_candles (self):
-        log.debug ("retrieving candles from db")
-        try:
-#             query = select([self.table])
-#             ResultProxy = self.db.connection.execute(query)
-#             ResultSet = ResultProxy.fetchall()
-            ResultSet = self.db.session.query(self.mapping).order_by(self.ohlcCls.time).all()
-            log.info ("Retrieved %d candles for table: %s"%(len(ResultSet), self.table_name))
-            
-            if (len(ResultSet)):
-                res_list = [self.OHLCCls(c.time, c.open, c.high, c.low, c.close, c.volume) for c in ResultSet]
+                res_list = [self.screenerCls(c.symbol, c.data) for c in ResultSet]
             #clear cache now
             self.db.session.expire_all()
             return res_list
