@@ -68,7 +68,7 @@ class ScreenerDb(object):
         return "{updated_time: %s, data: %s}"%(
             str(self.updated_time), str(self.data))
     def db_save_data (self, d):
-        log.critical ("Adding screener to db %s"%(str(d)))
+        log.info ("Adding screener to db ")
         c = self.screenerCls(d)
         self.db.session.merge (c)
         self.db.session.commit()
