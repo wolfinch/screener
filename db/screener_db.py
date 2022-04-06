@@ -39,7 +39,8 @@ class ScreenerDb(object):
             # Create a table with the appropriate Columns
             log.info ("creating table: %s"%(self.table_name))            
             self.table = Table(self.table_name, self.db.metadata,
-                Column('symbol', String(16), primary_key=True, nullable=False),                
+                Column('updated', Boolean, primary_key=True, nullable=False),
+                Column('update_time', Numeric),
                 Column('data', Text))
             # Implement the creation
             self.db.metadata.create_all(self.db.engine, checkfirst=True)   
@@ -49,9 +50,14 @@ class ScreenerDb(object):
         try:
             # HACK ALERT: to support multi-table with same class on sqlalchemy mapping
             class T (screenerCls):
-                def __init__ (self, s, d):
-                    self.symbol = s
-                    self.data = json.dumps(d)
+                def __init__ (self, d=None):
+                    if d != None:
+                        self.updated = d.updated
+                        self.update_time = d.update_time
+                        self.data = json.dumps(d)
+                    else:
+                        self.updated = False
+                        self.update_time = 0
             self.screenerCls = T
             self.mapping = mapper(self.screenerCls, self.table)
         except Exception as e:
@@ -59,11 +65,11 @@ class ScreenerDb(object):
 #             self.mapping = mapper(screenerCls, self.table, non_primary=True)            
             raise e
     def __str__ (self):
-        return "{symbol: %s, data: %s}"%(
-            str(self.symbol), str(self.data))
-    def db_save_data (self, s, d):
-        log.debug ("Adding screener to db")
-        c = self.screenerCls(s, d)
+        return "{updated_time: %s, data: %s}"%(
+            str(self.updated_time), str(self.data))
+    def db_save_data (self, d):
+        log.critical ("Adding screener to db %s"%(str(d)))
+        c = self.screenerCls(d)
         self.db.session.merge (c)
         self.db.session.commit()
     def db_save_all_data (self, data_l):
@@ -72,6 +78,27 @@ class ScreenerDb(object):
             c = self.screenerCls(s, d)
             self.db.session.merge (c)
         self.db.session.commit()
+    def db_get_data (self):
+        log.debug ("retrieving data from db")
+        try:
+            ResultSet = self.db.session.query(self.mapping).order_by(self.screenerCls.update_time).all()
+            log.info ("Retrieved %d screener data for table: %s"%(len(ResultSet), self.table_name))
+            if ResultSet and len(ResultSet):
+                for c in ResultSet:                
+                    res = self.screenerCls()
+                    if c.data:
+                        res.data = json.loads(c.data)
+                    res.update_time = c.update_time
+                    res.updated = c.updated
+            else:
+                res = self.screenerCls()
+                # res_list = [self.screenerCls(c.symbol, c.data) for c in ResultSet]
+            #clear cache now
+            self.db.session.expire_all()
+            return res
+        except Exception as e:
+            print(str(e))     
+            raise e     
     def db_get_all_data (self):
         log.debug ("retrieving data from db")
         try:

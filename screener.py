@@ -39,7 +39,7 @@ import ui
 import gc
 
 from utils import getLogger, readConf
-from db import ScreenerDb
+from db import ScreenerDb, clear_db
 
 log = getLogger("Screener")
 log.setLevel(logging.ERROR)
@@ -118,11 +118,11 @@ def register_screeners(cfg):
     for scrn_obj in g_screeners:
         #create data holders for each screener
         db = ScreenerDb(Tstats, scrn_obj.name)
-        t_stats = db.db_get_all_data()
-        g_ticker_stats[scrn_obj.name] = Tstats(t_stats)
-        # g_ticker_stats[scrn_obj.name] = Tstats()
+        t_stats = db.db_get_data()
+        g_ticker_stats[scrn_obj.name] = Tstats(t_stats.data or {})
         g_ticker_stats[scrn_obj.name].db = db
-        g_ticker_stats[scrn_obj.name].updated = False
+        g_ticker_stats[scrn_obj.name].updated = scrn_obj.updated = t_stats.updated
+        g_ticker_stats[scrn_obj.name].update_time = scrn_obj.update_time = t_stats.update_time
 def update_data():
     #update stats only during ~12hrs, to cover pre,open,ah
     log.debug("updating data")
@@ -135,12 +135,13 @@ def update_data():
                 continue
             log.info ("updating screener data for %s num_sym: %d"%(scrn_obj.name, len(s_list)))                
             if scrn_obj.update(s_list, g_ticker_stats):
-                g_ticker_stats[scrn_obj.name].db.db_save_all_data(g_ticker_stats[scrn_obj.name])
                 scrn_obj.updated = True
                 g_ticker_stats[scrn_obj.name].updated = True
                 #update time. 
                 # Sometimes, data not updated during market close etc. handle this in screener, update routine 
-                scrn_obj.update_time = int(time.time())
+                scrn_obj.update_time = int(time.time())                
+                g_ticker_stats[scrn_obj.name].update_time = scrn_obj.update_time
+                g_ticker_stats[scrn_obj.name].db.db_save_data(g_ticker_stats[scrn_obj.name])
                 log.info("screener data %s saved to db "%(scrn_obj.name))
             else:
                 g_ticker_stats[scrn_obj.name].updated = False
@@ -185,7 +186,7 @@ def clean_states():
     clean states
     '''
     log.info("Clearing Db")
-
+    clear_db()
 def load_config (cfg_file):
     global ScreenerConfig
     ScreenerConfig = readConf(cfg_file)
