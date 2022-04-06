@@ -20,7 +20,7 @@
 # from decimal import Decimal
 import traceback
 from .screener_base import Screener
-import data
+import tdata
 import time
 from datetime import datetime
 import notifiers
@@ -70,7 +70,7 @@ class FIN_DATA(Screener):
     #     log.debug("num tickers(%d)"%(len(sym_list)))
         ss = None
         try:
-            ts, err =  data.get_financial_data(sym)
+            ts, err =  tdata.get_financial_data(sym)
             if err == None:
                 ticker_stats[sym] = ts                  
             else:

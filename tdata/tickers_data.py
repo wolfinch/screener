@@ -27,7 +27,7 @@ from decimal import getcontext
 import logging
 import requests
 import pprint
-from .data import log, get_quotes
+from .tdata import log, get_quotes
 import nasdaq
 
 
@@ -84,7 +84,7 @@ def get_all_ticker_lists ():
                 log.info("SPAC (%d) tickers imported"%(len(t_l)))
             #get filtered list based on vol
             tl = ["UPH", "ARVL"]
-            # all_tickers["GT100M500KLT5"] = tl
+            all_tickers["GT100M500KLT5"] = tl
             all_tickers["GT100M500K"] = tl
             # get_filtered_ticker_list()            
             ticker_import_time = int(time.time())

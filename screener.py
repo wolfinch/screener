@@ -117,9 +117,11 @@ def register_screeners(cfg):
     g_screeners = Configure(cfg)
     for scrn_obj in g_screeners:
         #create data holders for each screener
-        g_ticker_stats[scrn_obj.name] = Tstats()
-        log.critical (">>>>>>>>>>>>>>>>>>>>>> class - %s"%(type(scrn_obj)))
-        g_ticker_stats[scrn_obj.name].db = ScreenerDb(Tstats, scrn_obj.name)
+        db = ScreenerDb(Tstats, scrn_obj.name)
+        t_stats = db.db_get_all_data()
+        g_ticker_stats[scrn_obj.name] = Tstats(t_stats)
+        # g_ticker_stats[scrn_obj.name] = Tstats()
+        g_ticker_stats[scrn_obj.name].db = db
         g_ticker_stats[scrn_obj.name].updated = False
 def update_data():
     #update stats only during ~12hrs, to cover pre,open,ah
@@ -139,7 +141,7 @@ def update_data():
                 #update time. 
                 # Sometimes, data not updated during market close etc. handle this in screener, update routine 
                 scrn_obj.update_time = int(time.time())
-                log.critical(">>>>> saved to db")
+                log.info("screener data %s saved to db "%(scrn_obj.name))
             else:
                 g_ticker_stats[scrn_obj.name].updated = False
 

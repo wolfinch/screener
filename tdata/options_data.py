@@ -28,7 +28,7 @@ from decimal import getcontext
 import logging
 import requests
 import pprint
-from .data import log, _get_YF, _get_RH
+from .tdata import log, _get_YF, _get_RH
 
 
 def get_options(sym, exp_date=None, kind=None):

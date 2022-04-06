@@ -20,7 +20,7 @@
 # from decimal import Decimal
 import traceback
 from .screener_base import Screener
-import data
+import tdata
 import time
 from datetime import datetime
 import notifiers
@@ -115,7 +115,7 @@ class VOL_SPIKE(Screener):
         i = 0
         try:
             while i < len(sym_list):
-                ts, err =  data.get_quotes(sym_list[i: i+BATCH_SIZE])
+                ts, err =  tdata.get_quotes(sym_list[i: i+BATCH_SIZE])
                 if err == None:
                     for ti in ts:
                         s = ti.get("symbol")

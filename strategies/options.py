@@ -22,7 +22,7 @@ from tkinter import E, N
 import traceback
 from sqlalchemy import true
 from .screener_base import Screener
-import data
+import tdata
 import time
 from datetime import datetime
 import notifiers
@@ -83,7 +83,7 @@ class OPTIONS(Screener):
         log.debug("get option chains for %s", sym)
         exp_date=None
         try:
-            ticker_stats[sym] = data.get_options(sym, exp_date)
+            ticker_stats[sym] = tdata.get_options(sym, exp_date)
         except Exception as e:
             log.critical (" Exception e: %s \n sym: %s"%(e, sym))
             raise e
