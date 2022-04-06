@@ -34,11 +34,12 @@ import random
 import logging
 from  strategies import Configure
 import notifiers
-import data
+import tdata
 import ui
 import gc
 
 from utils import getLogger, readConf
+from db import ScreenerDb
 
 log = getLogger("Screener")
 log.setLevel(logging.ERROR)
@@ -59,7 +60,7 @@ def screener_init():
     random.seed()
 
     #init data source
-    data.init()
+    tdata.init()
 
     # print ("config: %s"%(ScreenerConfig))
     notifier = ScreenerConfig.get("notifier")
@@ -117,6 +118,8 @@ def register_screeners(cfg):
     for scrn_obj in g_screeners:
         #create data holders for each screener
         g_ticker_stats[scrn_obj.name] = Tstats()
+        log.critical (">>>>>>>>>>>>>>>>>>>>>> class - %s"%(type(scrn_obj)))
+        g_ticker_stats[scrn_obj.name].db = ScreenerDb(Tstats, scrn_obj.name)
         g_ticker_stats[scrn_obj.name].updated = False
 def update_data():
     #update stats only during ~12hrs, to cover pre,open,ah
@@ -130,11 +133,13 @@ def update_data():
                 continue
             log.info ("updating screener data for %s num_sym: %d"%(scrn_obj.name, len(s_list)))                
             if scrn_obj.update(s_list, g_ticker_stats):
+                g_ticker_stats[scrn_obj.name].db.db_save_all_data(g_ticker_stats[scrn_obj.name])
                 scrn_obj.updated = True
                 g_ticker_stats[scrn_obj.name].updated = True
                 #update time. 
                 # Sometimes, data not updated during market close etc. handle this in screener, update routine 
                 scrn_obj.update_time = int(time.time())
+                log.critical(">>>>> saved to db")
             else:
                 g_ticker_stats[scrn_obj.name].updated = False
 
@@ -165,7 +170,7 @@ def get_all_tickers ():
     global ticker_import_time, all_tickers
     log.debug ("get all tickers")
     if ticker_import_time + 24*3600 < int(time.time()) :
-        all_tickers = data.get_all_ticker_lists()
+        all_tickers = tdata.get_all_ticker_lists()
     return all_tickers
     
 def get_screener_data():

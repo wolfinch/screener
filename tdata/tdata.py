@@ -49,7 +49,7 @@ def init():
         YF = yf.Yahoofin ()
     if not RH:
         log.info("init robinhood exchange")
-        init_rh()
+        # init_rh()
 def init_rh():
     global RH
     ROBINHOOD_CONF = 'config/robinhood.yml'    

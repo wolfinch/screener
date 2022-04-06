@@ -23,6 +23,7 @@ from utils import getLogger
 from .db import init_db
 from sqlalchemy import *
 from sqlalchemy.orm import mapper 
+import json
 
 log = getLogger ('SCREENER-DB')
 log.setLevel (log.DEBUG)
@@ -48,9 +49,9 @@ class ScreenerDb(object):
         try:
             # HACK ALERT: to support multi-table with same class on sqlalchemy mapping
             class T (screenerCls):
-                def __init__ (self, c):
-                    self.symbol = c.symbol
-                    self.data = c.data
+                def __init__ (self, s, d):
+                    self.symbol = s
+                    self.data = json.dumps(d)
             self.screenerCls = T
             self.mapping = mapper(self.screenerCls, self.table)
         except Exception as e:
@@ -60,15 +61,15 @@ class ScreenerDb(object):
     def __str__ (self):
         return "{symbol: %s, data: %s}"%(
             str(self.symbol), str(self.data))
-    def db_save_screener (self, data):
+    def db_save_data (self, s, d):
         log.debug ("Adding screener to db")
-        c = self.screenerCls(data)
+        c = self.screenerCls(s, d)
         self.db.session.merge (c)
         self.db.session.commit()
-    def db_save_screener (self, data_l):
+    def db_save_all_data (self, data_l):
         log.debug ("Adding data_l list to db")
-        for cdl in data_l:
-            c = self.screenerCls(cdl)
+        for s, d in data_l.items():
+            c = self.screenerCls(s, d)
             self.db.session.merge (c)
         self.db.session.commit()
     def db_get_all_data (self):
@@ -76,9 +77,11 @@ class ScreenerDb(object):
         try:
             ResultSet = self.db.session.query(self.mapping).order_by(self.screenerCls.symbol).all()
             log.info ("Retrieved %d screener data for table: %s"%(len(ResultSet), self.table_name))
-            
+            res_list = {}            
             if (len(ResultSet)):
-                res_list = [self.screenerCls(c.symbol, c.data) for c in ResultSet]
+                for c in ResultSet:
+                    res_list[c.symbol] = json.loads(c.data)
+                # res_list = [self.screenerCls(c.symbol, c.data) for c in ResultSet]
             #clear cache now
             self.db.session.expire_all()
             return res_list
