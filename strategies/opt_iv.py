@@ -84,6 +84,7 @@ class OPT_IV(Screener):
                 price = 0
                 fd = ticker_stats.get(sym)
                 if not fd:
+                    log.error ("unable to get fin data for sym %s"%(sym))
                     continue
                 sum_det = fd.get("summaryDetail")
                 if sum_det:
