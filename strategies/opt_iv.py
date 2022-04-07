@@ -82,11 +82,14 @@ class OPT_IV(Screener):
             for sym in sym_list:
                 #2.0 get curr price:
                 price = 0
-                sum_det = ticker_stats[sym].get("summaryDetail")
+                fd = ticker_stats.get(sym)
+                if not fd:
+                    continue
+                sum_det = fd.get("summaryDetail")
                 if sum_det:
                     price_r=sum_det.get("previousClose")
                     if price_r:
-                        price=round(float(price_r.get("raw")), 2)             
+                        price=round(float(price_r.get("raw")), 2)
                 sym_d = options_stats.get(sym)
                 # log.debug("screen : %s \n df %s"%(sym, sym_d))
                 if not sym_d or len(sym_d) == 0 or price == 0:
