@@ -94,16 +94,31 @@ class OPT_IV(Screener):
                     continue
                 puts = sym_d[0].get("puts")
                 if puts:
-                    i = 0
+                    i = -1
                     for pc in puts:
                         # find the first in-the-money. and use the strike below that.
                         if pc["strike"] > price:
                             break
                         i += 1
-                    if i >= len(puts):
-                        i -= 1
+                    if i == -1:
+                        i = 0
+                    # try to get the strike closer to the price
+                    if i < len(puts)-1:
+                        if abs(puts[i+1]["strike"] - price) < abs(puts[i]["strike"] - price):
+                            i = i+1
                     pc = puts[i]
+                    bid = pc.get("bid", 0)
+                    ask = pc.get("ask", 0)
+                    if  bid == 0:
+                        #ignore ones with no bid
+                        continue
+                    #ignore wide bid-ask spread - 50c
+                    # if ask - bid > 0.5:
+                        # continue
                     iv = round(pc.get("iv", 0), 2)
+                    #ignore low iv
+                    if iv < 0.2:
+                        continue
                     strike = pc["strike"]
                     oi = pc.get("oi", 0)
                     price = round(pc.get("price", 0), 2)
