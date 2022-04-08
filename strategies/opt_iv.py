@@ -128,7 +128,7 @@ class OPT_IV(Screener):
                     if iv < 0.2:
                         continue
                     fs = {"symbol": sym, "time": now,
-                          "strike": strike,
+                          "tp/stk": str(tprice)+"/"+str(strike),
                           "price": price,
                           "iv": iv,
                           "expiry": exp,
