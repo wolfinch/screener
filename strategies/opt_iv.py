@@ -128,7 +128,7 @@ class OPT_IV(Screener):
                     if iv < 0.2:
                         continue
                     fs = {"symbol": sym, "time": now,
-                          "tp/stk": str(tprice)+"/"+str(strike),
+                          "tpstk": str(tprice)+"/"+str(strike),
                           "price": price,
                           "iv": iv,
                           "expiry": exp,
@@ -153,7 +153,7 @@ class OPT_IV(Screener):
         #         ft = [
         #          {"symbol": "aapl", "strike": 2.5, "price": 10.2, "iv": "1.4", "expiry": "200511", "oi": "20", "time": "4"},
         #              ]
-        fmt = {"symbol": "Symbol", "time": "Time", "strike": "Strike",
+        fmt = {"symbol": "Symbol", "time": "Time", "tpstk": "tp/stk",
                "price": "Price", "iv": "IV", "oi": "OI", "expiry": "Expiry"}
         return {"format": fmt, "sort": "oi", "data": list(self.filtered_list.values()), "hidden":["time"]}
 
