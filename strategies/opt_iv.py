@@ -90,10 +90,10 @@ class OPT_IV(Screener):
                 if sum_det:
                     price_r=sum_det.get("previousClose")
                     if price_r:
-                        price=round(float(price_r.get("raw")), 2)
+                        tprice=round(float(price_r.get("raw")), 2)
                 sym_d = options_stats.get(sym)
                 # log.debug("screen : %s \n df %s"%(sym, sym_d))
-                if not sym_d or len(sym_d) == 0 or price == 0:
+                if not sym_d or len(sym_d) == 0 or tprice == 0:
                     log.error("unable to get options for sym %s" % (sym))
                     continue
                 puts = sym_d[0].get("puts")
@@ -101,32 +101,32 @@ class OPT_IV(Screener):
                     i = -1
                     for pc in puts:
                         # find the first in-the-money. and use the strike below that.
-                        if pc["strike"] > price:
+                        if pc["strike"] > tprice:
                             break
                         i += 1
                     if i == -1:
                         i = 0
                     # try to get the strike closer to the price
                     if i < len(puts)-1:
-                        if abs(puts[i+1]["strike"] - price) < abs(puts[i]["strike"] - price):
+                        if abs(puts[i+1]["strike"] - tprice) < abs(puts[i]["strike"] - tprice):
                             i = i+1
                     pc = puts[i]
                     bid = pc.get("bid", 0)
                     ask = pc.get("ask", 0)
+                    price = round(pc.get("price", 0), 2)
+                    strike = pc["strike"]
+                    oi = pc.get("oi", 0)
+                    exp = pc.get("expiry", 0)                    
                     if  bid == 0:
                         #ignore ones with no bid
                         continue
-                    #ignore wide bid-ask spread - 50c
-                    # if ask - bid > 0.5:
-                        # continue
+                    #ignore wide bid-ask spread - 30% of price
+                    if ask - bid > price*0.3:
+                        continue
                     iv = round(pc.get("iv", 0), 2)
                     #ignore low iv
                     if iv < 0.2:
                         continue
-                    strike = pc["strike"]
-                    oi = pc.get("oi", 0)
-                    price = round(pc.get("price", 0), 2)
-                    exp = pc.get("expiry", 0)
                     fs = {"symbol": sym, "time": now,
                           "strike": strike,
                           "price": price,
@@ -142,7 +142,7 @@ class OPT_IV(Screener):
                     #                     "total_cash": "%s"%(tcash_s)}
                     # notifiers.notify(self.notify_kind, self.name, notify_msg)
             # now that we have list of opt. sort the list and get only top 25
-            fs_l.sort(reverse=True, key=lambda e: e["oi"])
+            fs_l.sort(reverse=True, key=lambda e: e["iv"])
             self.filtered_list = {}  # clear list
             for fs in fs_l[:MAX_SCREENED_TICKERS]:
                 self.filtered_list[fs["symbol"]] = fs

@@ -79,6 +79,14 @@ class CASH_MCAP(Screener):
                 if sum_prof:
                     if sum_prof.get("sector") == "Financial Services":
                         continue
+                asset_prof = sym_d.get("assetProfile")
+                if asset_prof:
+                    country = asset_prof.get("country")
+                    if country:
+                        country = str(country).lower()
+                        if country in ["china", "taiwan", "hong kong"]:
+                            log.info ("symbol from blacklist country ignored - %s"%(sym))
+                            continue
                 sum_det = sym_d.get("summaryDetail")
                 if sum_det:
                     # log.info("sum_d %s"%(sum_det))
