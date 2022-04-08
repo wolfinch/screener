@@ -81,7 +81,7 @@ class OPT_IV(Screener):
             fs_l = []
             for sym in sym_list:
                 #2.0 get curr price:
-                price = 0
+                tprice = 0
                 fd = ticker_stats.get(sym)
                 if not fd:
                     log.error ("unable to get fin data for sym %s"%(sym))
@@ -93,7 +93,7 @@ class OPT_IV(Screener):
                         tprice=round(float(price_r.get("raw")), 2)
                 sym_d = options_stats.get(sym)
                 # log.debug("screen : %s \n df %s"%(sym, sym_d))
-                if not sym_d or len(sym_d) == 0 or tprice == 0:
+                if tprice < 1 or not sym_d or len(sym_d) == 0:
                     log.error("unable to get options for sym %s" % (sym))
                     continue
                 puts = sym_d[0].get("puts")
@@ -117,7 +117,7 @@ class OPT_IV(Screener):
                     strike = pc["strike"]
                     oi = pc.get("oi", 0)
                     exp = pc.get("expiry", 0)                    
-                    if  bid == 0:
+                    if  bid == 0 or oi == 0:
                         #ignore ones with no bid
                         continue
                     #ignore wide bid-ask spread - 30% of price

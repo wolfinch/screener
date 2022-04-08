@@ -84,7 +84,7 @@ class CASH_MCAP(Screener):
                     country = asset_prof.get("country")
                     if country:
                         country = str(country).lower()
-                        if country in ["china", "taiwan", "hong kong"]:
+                        if country not in ["united states", "canad", "israel"]:
                             log.info ("symbol from blacklist country ignored - %s"%(sym))
                             continue
                 sum_det = sym_d.get("summaryDetail")
