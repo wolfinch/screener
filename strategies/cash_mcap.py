@@ -73,7 +73,10 @@ class CASH_MCAP(Screener):
         price =0
         try:
             for sym in sym_list:
-                sym_d = ticker_stats[sym]
+                sym_d = ticker_stats.get(sym)
+                if not sym_d:
+                    log.info("unable to get fin data for %s"%(sym))
+                    continue
                 # log.info("sym_d: %s \n"%(sym_d))
                 sum_prof = sym_d.get("summaryProfile")
                 if sum_prof:
@@ -84,7 +87,7 @@ class CASH_MCAP(Screener):
                     country = asset_prof.get("country")
                     if country:
                         country = str(country).lower()
-                        if country not in ["united states", "canad", "israel"]:
+                        if country not in ["united states", "canada", "israel"]:
                             log.info ("symbol from blacklist country ignored - %s country %s"%(sym, country))
                             continue
                 sum_det = sym_d.get("summaryDetail")
