@@ -116,7 +116,7 @@ class OPT_IV(Screener):
                     price = round(pc.get("price", 0), 2)
                     strike = pc["strike"]
                     oi = pc.get("oi", 0)
-                    exp = pc.get("expiry", 0)                    
+                    exp = pc.get("expiry", 0)
                     if  bid == 0 or oi == 0:
                         #ignore ones with no bid
                         continue
@@ -124,10 +124,11 @@ class OPT_IV(Screener):
                     if ask - bid > price*0.3:
                         continue
                     iv = round(pc.get("iv", 0), 2)
-                    ext_v = abs(abs(strike - tprice) - price)
                     #ignore low iv
                     if iv < 0.2:
                         continue
+                    #get extrinsic value
+                    ext_v = round(abs(abs(strike - tprice) - price), 2)
                     fs = {"symbol": sym, "time": now,
                           "tpstk": str(tprice)+"/"+str(strike),
                           "evprice": str(ext_v)+"/"+str(price),
