@@ -34,7 +34,7 @@ import nasdaq
 # logging.getLogger("urllib3").setLevel(log.WARNING)
 AVG_VOL_FILTER = 500000
 MCAP_100M_FILTER = 100000000
-PRICE_LT5_FILTER = 10
+PRICE_LT10_FILTER = 10
 ticker_import_time = 0
 
 all_tickers = {"ALL":[], "MEGACAP":[], "GT50M": [], "LT50M": [], "OTC": [], "SPAC": []}
