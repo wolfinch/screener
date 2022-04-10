@@ -86,6 +86,15 @@ class OPT_IV(Screener):
                 if not fd:
                     log.error ("unable to get fin data for sym %s"%(sym))
                     continue
+                
+                asset_prof = fd.get("assetProfile")
+                if asset_prof:
+                    industry = asset_prof.get("industry")
+                    if industry:
+                        industry = str(industry).lower()
+                        if industry == "biotechnology":
+                            log.info ("industry biotechnology symbol ignored - %s"%(sym))
+                            continue                
                 sum_det = fd.get("summaryDetail")
                 if sum_det:
                     price_r=sum_det.get("previousClose")
