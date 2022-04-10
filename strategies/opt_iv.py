@@ -124,12 +124,13 @@ class OPT_IV(Screener):
                     if ask - bid > price*0.3:
                         continue
                     iv = round(pc.get("iv", 0), 2)
+                    ext_v = abs(abs(strike - tprice) - price)
                     #ignore low iv
                     if iv < 0.2:
                         continue
                     fs = {"symbol": sym, "time": now,
                           "tpstk": str(tprice)+"/"+str(strike),
-                          "price": price,
+                          "evprice": str(ext_v)+"/"+str(price),
                           "iv": iv,
                           "expiry": exp,
                           "oi": oi,
@@ -153,8 +154,8 @@ class OPT_IV(Screener):
         #         ft = [
         #          {"symbol": "aapl", "strike": 2.5, "price": 10.2, "iv": "1.4", "expiry": "200511", "oi": "20", "time": "4"},
         #              ]
-        fmt = {"symbol": "Symbol", "time": "Time", "tpstk": "tp/stk",
-               "price": "Price", "iv": "IV", "oi": "OI", "expiry": "Expiry"}
+        fmt = {"symbol": "Symbol", "time": "Time", "tpstk": "TP/Stk",
+               "evprice": "EV/Price", "iv": "IV", "oi": "OI", "expiry": "Expiry"}
         return {"format": fmt, "sort": "oi", "data": list(self.filtered_list.values()), "hidden":["time"]}
 
 # EOF

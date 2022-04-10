@@ -34,7 +34,7 @@ import nasdaq
 # logging.getLogger("urllib3").setLevel(log.WARNING)
 AVG_VOL_FILTER = 500000
 MCAP_100M_FILTER = 100000000
-PRICE_LT5_FILTER = 5
+PRICE_LT5_FILTER = 10
 ticker_import_time = 0
 
 all_tickers = {"ALL":[], "MEGACAP":[], "GT50M": [], "LT50M": [], "OTC": [], "SPAC": []}
@@ -84,7 +84,7 @@ def get_all_ticker_lists ():
                 log.info("SPAC (%d) tickers imported"%(len(t_l)))
             #get filtered list based on vol
             # tl = ["UPH", "ARVL"]
-            # all_tickers["GT100M500KLT5"] = tl
+            # all_tickers["GT100M500KLT10"] = tl
             # all_tickers["GT100M500K"] = tl
             get_filtered_ticker_list()            
             ticker_import_time = int(time.time())
@@ -136,11 +136,11 @@ def get_filtered_ticker_list():
         tl = []
         for s in all_tickers["GT100M500K"]:
             st = ticker_stats.get(s)
-            if st and st.get("regularMarketPrice", 0) <= PRICE_LT5_FILTER and st.get("quoteType") == "EQUITY":
+            if st and st.get("regularMarketPrice", 0) <= PRICE_LT10_FILTER and st.get("quoteType") == "EQUITY":
                 tl.append(s)
         # tl = ["TSLA", "NIO", "MSFT", "INO", "ARVL"]
-        all_tickers["GT100M500KLT5"] = tl
-        log.info ("# GT100M500KLT5 tickers %s \n tl- %s", len(tl), tl)
+        all_tickers["GT100M500KLT10"] = tl
+        log.info ("# GT100M500KLT10 tickers %s \n tl- %s", len(tl), tl)
                 
         #get all tickers >500K volume 
         tl = []
