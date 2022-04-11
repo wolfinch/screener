@@ -1,6 +1,6 @@
 #
 # Wolfinch Auto trading Bot screener
-#  *** options iv under 5
+#  *** options Open interest going up 
 #  *** option selling screener, maximum profit
 #
 #  Copyright: (c) 2017-2022 Joshith Rayaroth Koderi
@@ -27,12 +27,13 @@ from .screener_base import Screener
 import time
 import notifiers
 
-log = getLogger("OPT_IV")
+log = getLogger("OPT_OI_SPIKE")
 log.setLevel(log.DEBUG)
 MAX_SCREENED_TICKERS = 50
 
-class OPT_IV(Screener):
-    def __init__(self, name="OPT_IV", ticker_kind="ALL", interval=24*60*60, multiplier=1, options_data="", ticker_data="", notify=None, **kwarg):
+# track change in OI from one screen to another. also track put/call spread. 
+class OPT_OI_SPIKE(Screener):
+    def __init__(self, name="OPT_OI_SPIKE", ticker_kind="ALL", interval=24*60*60, multiplier=1, options_data="", ticker_data="", notify=None, **kwarg):
         log.info("init: name: %s ticker_kind: %s interval: %d multiplier: %d data_src_name: %s" % (
             name, ticker_kind, interval, multiplier, options_data))
         super().__init__(name, ticker_kind, interval)
