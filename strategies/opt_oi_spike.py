@@ -26,10 +26,12 @@ from utils import getLogger
 from .screener_base import Screener
 import time
 import notifiers
+from datetime import date
 
 log = getLogger("OPT_OI_SPIKE")
 log.setLevel(log.DEBUG)
 MAX_SCREENED_TICKERS = 50
+OI_MAX_DAYS = 180 #~6 months
 
 # track change in OI from one screen to another. also track put/call spread. 
 class OPT_OI_SPIKE(Screener):
@@ -43,6 +45,21 @@ class OPT_OI_SPIKE(Screener):
         self.notify_kind = notify
         self.filtered_list = {}  # li
 
+        #   o = {
+        #         "expiry": expiry,
+        #         "strike": strike_price,
+        #         "price": 0,
+        #         "oi": 0,
+        #         "iv": 0,
+        #         "ask": 0,
+        #         "bid": 0,
+        #         "volume": 0,
+        #         "itm": False,
+        #         "delta": 0,
+        #         "theta": 0,
+        #         "gamma": 0,
+        #         "vega": 0
+        #     }   
     def update(self, sym_list, ticker_stats_g):
         # we don't update data_src_name here. Rather self.data_src_name is our data_src_name source
         try:
@@ -57,10 +74,54 @@ class OPT_OI_SPIKE(Screener):
                     self.ticker_data_src_name))
                 return False                
             # make sure all data_src_name available for our list
-            # TODO: FIXME: optimize this
             if not t_data.updated or not o_data.updated:
                 log.error("data_src_name is still being updated t_data.updated: %s not o_data.updated: %s"%(t_data.updated, o_data.updated))
                 return False
+            today = date.today()
+            p_oi_data = ticker_stats_g.get(self.name)
+            oi_data = {}
+            for sym, o_l in o_data.items():
+                num_puts = 0
+                num_calls = 0
+                high_p_s_oi = 0
+                high_c_s = 0
+                high_c_exp = ""
+                high_c_s_oi = 0
+                high_p_s = 0
+                high_p_exp = ""
+                for o in o_l:
+                    e = o["expiry"][:2]
+                    if (date(year=2000+int(e[:2]), month=int(e[2:4]), day=int(e[4:])) - today).days > OI_MAX_DAYS:
+                        #ignore options beyond our interestd timeframe
+                        continue
+                    for p in o["puts"]:
+                        p_n = int(p["oi"])
+                        num_puts += p_n
+                        if p_n > high_p_s_oi:
+                            high_p_s_oi = p_n
+                            high_p_s = p["strike"]
+                            high_p_exp = e
+                    for c in o["calls"]:
+                        c_n = int(c["oi"])
+                        num_calls += c_n
+                        if c_n > high_c_s_oi:
+                            high_c_s_oi = c_n
+                            high_c_s = c["strike"]
+                            high_c_exp = e
+                o_d = {"num_puts": num_puts,
+                        "high_puts_oi": high_p_s_oi, 
+                        "high_puts_exp": high_p_exp,
+                        "high_puts_strike": high_p_s,
+                        "num_calls": num_calls,
+                        "high_calls_oi": high_c_s_oi,
+                        "high_calls_exp": high_c_exp,
+                        "high_calls_strike": high_c_s }
+                if not p_oi_data.get(sym):
+                    p_oi_data["sym"] = [o_d]
+                else:
+                    p_oi_data["sym"].append(o_d)
+                if len(p_oi_data["sym"]) > 3:
+                    del(p_oi_data["sym"][0])
             return True
         except Exception as e:
             log.critical("exception while get data_src_name e: %s" % (e))
