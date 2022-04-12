@@ -90,7 +90,7 @@ class OPT_OI_SPIKE(Screener):
                 high_p_s = 0
                 high_p_exp = ""
                 for o in o_l:
-                    e = o["expiry"][:2]
+                    e = o["expiry"]
                     if (date(year=2000+int(e[:2]), month=int(e[2:4]), day=int(e[4:])) - today).days > OI_MAX_DAYS:
                         #ignore options beyond our interestd timeframe
                         continue
@@ -117,14 +117,14 @@ class OPT_OI_SPIKE(Screener):
                         "high_calls_exp": high_c_exp,
                         "high_calls_strike": high_c_s }
                 if not p_oi_data.get(sym):
-                    p_oi_data["sym"] = [o_d]
+                    p_oi_data[sym] = [o_d]
                 else:
-                    p_oi_data["sym"].append(o_d)
-                if len(p_oi_data["sym"]) > 3:
-                    del(p_oi_data["sym"][0])
+                    p_oi_data[sym].append(o_d)
+                if len(p_oi_data[sym]) > 3:
+                    del(p_oi_data[sym][0])
             return True
         except Exception as e:
-            log.critical("exception while get data_src_name e: %s" % (e))
+            log.critical("exception while get data_src_name e: %s" %(traceback.format_exc()))
             return False
 
     def screen(self, sym_list, ticker_stats_g):
@@ -133,7 +133,7 @@ class OPT_OI_SPIKE(Screener):
         ticker_stats = ticker_stats_g.get(self.ticker_data_src_name)
         if not ticker_stats:
             raise
-        options_stats = ticker_stats_g.get(self.options_data_src_name)
+        options_stats = ticker_stats_g.get(self.name)
         if not options_stats:
             raise    
         # 2. for each sym, if cash_pos > market_cap -> add filtered l
@@ -162,60 +162,47 @@ class OPT_OI_SPIKE(Screener):
                     price_r=sum_det.get("previousClose")
                     if price_r:
                         tprice=round(float(price_r.get("raw")), 2)
+
                 sym_d = options_stats.get(sym)
                 # log.debug("screen : %s \n df %s"%(sym, sym_d))
                 if tprice < 1 or not sym_d or len(sym_d) == 0:
-                    log.error("unable to get options for sym %s" % (sym))
+                    log.error("unable to get options stats for sym %s" % (sym))
                     continue
-                puts = sym_d[0].get("puts")
-                if puts:
-                    i = -1
-                    for pc in puts:
-                        # find the first in-the-money. and use the strike below that.
-                        if pc["strike"] > tprice:
-                            break
-                        i += 1
-                    if i == -1:
-                        i = 0
-                    # try to get the strike closer to the price
-                    if i < len(puts)-1:
-                        if abs(puts[i+1]["strike"] - tprice) < abs(puts[i]["strike"] - tprice):
-                            i = i+1
-                    pc = puts[i]
-                    bid = pc.get("bid", 0)
-                    ask = pc.get("ask", 0)
-                    price = round(pc.get("price", 0), 2)
-                    strike = pc["strike"]
-                    oi = pc.get("oi", 0)
-                    exp = pc.get("expiry", 0)
-                    if  bid == 0 or oi == 0:
-                        #ignore ones with no bid
-                        continue
-                    #ignore wide bid-ask spread - 30% of price
-                    if ask - bid > price*0.3:
-                        continue
-                    iv = round(pc.get("iv", 0), 2)
-                    #ignore low iv
-                    if iv < 0.2:
-                        continue
-                    #get extrinsic value
-                    ext_v = round(abs(abs(strike - tprice) - price), 2)
-                    fs = {"symbol": sym, "time": now,
-                          "tpstk": str(tprice)+"/"+str(strike),
-                          "evprice": str(ext_v)+"/"+str(price),
-                          "iv": iv,
-                          "expiry": exp,
-                          "oi": oi,
-                          }
-                    log.info('new sym found by screener: %s info:  %s' %(sym, fs))
-                    fs_l.append(fs)
-                    # if self.notify_kind:
-                    #     notify_msg = {"symbol": fs["symbol"],
-                    #                     "cur_mcap": "%s)"%(mcap_s),
-                    #                     "total_cash": "%s"%(tcash_s)}
-                    # notifiers.notify(self.notify_kind, self.name, notify_msg)
+
+                if len(sym_d) < 2:
+                    log.error ("too short option stats history for sym %s"%(sym))
+                    continue
+                # o_d = {"num_puts": num_puts,
+                #         "high_puts_oi": high_p_s_oi, 
+                #         "high_puts_exp": high_p_exp,
+                #         "high_puts_strike": high_p_s,
+                #         "num_calls": num_calls,
+                #         "high_calls_oi": high_c_s_oi,
+                #         "high_calls_exp": high_c_exp,
+                #         "high_calls_strike": high_c_s }
+                os_c = sym_d[-1]
+                os_p = sym_d[-2]
+
+                oi_p_d = os_c["num_puts"] - os_p["num_puts"]
+                oi_c_d = os_c["num_calls"] - os_p["num_calls"]
+                if oi_p_d > oi_c_d:
+                    num_oi_d = str(oi_p_d)+" P"
+                else:
+                    num_oi_d = str(oi_c_d)+" C"
+                high_calls_oi = str(os_c["high_calls_oi"])+"@"+str(os_c["high_calls_strike"])+"/"+str(os_c["high_calls_exp"])
+                high_puts_oi = str(os_c["high_puts_oi"])+"@"+str(os_c["high_puts_strike"])+"/"+str(os_c["high_puts_exp"])
+
+                os_s = {
+                    "symbol": sym, "time": now,
+                    "num_oi_d":  num_oi_d,
+                    "high_calls_oi": high_calls_oi,
+                    "high_puts_oi": high_puts_oi
+                }
+
+                log.info('new sym found by screener: %s info:  %s' %(sym, os_s))
+                fs_l.append(os_s)
             # now that we have list of opt. sort the list and get only top 25
-            fs_l.sort(reverse=True, key=lambda e: e["iv"])
+            fs_l.sort(reverse=True, key=lambda e: e["num_oi_d"])
             self.filtered_list = {}  # clear list
             for fs in fs_l[:MAX_SCREENED_TICKERS]:
                 self.filtered_list[fs["symbol"]] = fs
@@ -223,11 +210,8 @@ class OPT_OI_SPIKE(Screener):
             log.critical("exception while screen e: %s exception: %s" % (e, traceback.format_exc()))
 
     def get_screened(self):
-        #         ft = [
-        #          {"symbol": "aapl", "strike": 2.5, "price": 10.2, "iv": "1.4", "expiry": "200511", "oi": "20", "time": "4"},
-        #              ]
-        fmt = {"symbol": "Symbol", "time": "Time", "tpstk": "TP/Stk",
-               "evprice": "EV/Price", "iv": "IV", "oi": "OI", "expiry": "Expiry"}
-        return {"format": fmt, "sort": "oi", "data": list(self.filtered_list.values()), "hidden":["time"]}
+        fmt = {"symbol": "Symbol", "time": "Time", "num_oi_d": "∆OI",
+               "high_calls_oi": "High Calls OI", "high_puts_oi": "High Puts OI"}
+        return {"format": fmt, "sort": "num_oi_d", "data": list(self.filtered_list.values()), "hidden":["time"]}
 
 # EOF
