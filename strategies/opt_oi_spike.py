@@ -89,6 +89,8 @@ class OPT_OI_SPIKE(Screener):
                 high_c_s_oi = 0
                 high_p_s = 0
                 high_p_exp = ""
+                if not o_l:
+                    continue
                 for o in o_l:
                     e = o["expiry"]
                     if (date(year=2000+int(e[:2]), month=int(e[2:4]), day=int(e[4:])) - today).days > OI_MAX_DAYS:
