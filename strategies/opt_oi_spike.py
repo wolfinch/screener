@@ -189,10 +189,10 @@ class OPT_OI_SPIKE(Screener):
                 oi_c_d = os_c["num_calls"] - os_p["num_calls"]
                 num_oi = 0
                 if oi_p_d > oi_c_d:
-                    num_oi_d = str(oi_p_d)+" P"
+                    num_oi_d = "Puts"
                     num_oi = oi_p_d
                 else:
-                    num_oi_d = str(oi_c_d)+" C"
+                    num_oi_d = "Calls"
                     num_oi = oi_c_d
                 high_calls_oi = str(os_c["high_calls_oi"])+"@"+str(os_c["high_calls_strike"])+"/"+str(os_c["high_calls_exp"])
                 high_puts_oi = str(os_c["high_puts_oi"])+"@"+str(os_c["high_puts_strike"])+"/"+str(os_c["high_puts_exp"])
@@ -216,8 +216,8 @@ class OPT_OI_SPIKE(Screener):
             log.critical("exception while screen e: %s exception: %s" % (e, traceback.format_exc()))
 
     def get_screened(self):
-        fmt = {"symbol": "Symbol", "time": "Time", "num_oi_d": "∆OI",
+        fmt = {"symbol": "Symbol", "time": "Time", "num_oi": "∆OI", "num_oi_d": "C/P",
                "high_calls_oi": "High Calls OI", "high_puts_oi": "High Puts OI"}
-        return {"format": fmt, "sort": "num_oi", "data": list(self.filtered_list.values()), "hidden":["time", "num_oi"]}
+        return {"format": fmt, "sort": "num_oi", "data": list(self.filtered_list.values()), "hidden":["time"]}
 
 # EOF
