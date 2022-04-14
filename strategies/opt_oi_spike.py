@@ -187,16 +187,20 @@ class OPT_OI_SPIKE(Screener):
 
                 oi_p_d = os_c["num_puts"] - os_p["num_puts"]
                 oi_c_d = os_c["num_calls"] - os_p["num_calls"]
+                num_oi = 0
                 if oi_p_d > oi_c_d:
                     num_oi_d = str(oi_p_d)+" P"
+                    num_oi = oi_p_d
                 else:
                     num_oi_d = str(oi_c_d)+" C"
+                    num_oi = oi_c_d
                 high_calls_oi = str(os_c["high_calls_oi"])+"@"+str(os_c["high_calls_strike"])+"/"+str(os_c["high_calls_exp"])
                 high_puts_oi = str(os_c["high_puts_oi"])+"@"+str(os_c["high_puts_strike"])+"/"+str(os_c["high_puts_exp"])
 
                 os_s = {
                     "symbol": sym, "time": now,
                     "num_oi_d":  num_oi_d,
+                    "num_oi": num_oi,
                     "high_calls_oi": high_calls_oi,
                     "high_puts_oi": high_puts_oi
                 }
@@ -214,6 +218,6 @@ class OPT_OI_SPIKE(Screener):
     def get_screened(self):
         fmt = {"symbol": "Symbol", "time": "Time", "num_oi_d": "∆OI",
                "high_calls_oi": "High Calls OI", "high_puts_oi": "High Puts OI"}
-        return {"format": fmt, "sort": "num_oi_d", "data": list(self.filtered_list.values()), "hidden":["time"]}
+        return {"format": fmt, "sort": "num_oi", "data": list(self.filtered_list.values()), "hidden":["time", "num_oi"]}
 
 # EOF
