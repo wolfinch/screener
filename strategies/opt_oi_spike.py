@@ -188,12 +188,18 @@ class OPT_OI_SPIKE(Screener):
                 oi_p_d = os_c["num_puts"] - os_p["num_puts"]
                 oi_c_d = os_c["num_calls"] - os_p["num_calls"]
                 num_oi = 0
-                if oi_p_d > oi_c_d:
-                    num_oi_d = "Puts"
-                    num_oi = oi_p_d
+                if abs(oi_p_d) > abs(oi_c_d):
+                    if oi_p_d < 0:
+                        num_oi_d = "Puts(-)"
+                    else:
+                        num_oi_d = "Puts"
+                    num_oi = abs(oi_p_d)
                 else:
-                    num_oi_d = "Calls"
-                    num_oi = oi_c_d
+                    if oi_c_d < 0:
+                        num_oi_d = "Calls(-)"
+                    else:
+                        num_oi_d = "Calls"
+                    num_oi = abs(oi_c_d)
                 high_calls_oi = str(os_c["high_calls_oi"])+"@"+str(os_c["high_calls_strike"])+"/"+str(os_c["high_calls_exp"])
                 high_puts_oi = str(os_c["high_puts_oi"])+"@"+str(os_c["high_puts_strike"])+"/"+str(os_c["high_puts_exp"])
 
