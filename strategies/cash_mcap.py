@@ -94,26 +94,26 @@ class CASH_MCAP(Screener):
                 if sum_det:
                     # log.info("sum_d %s"%(sum_det))
                     mcap_r=sum_det.get("marketCap")
-                    if mcap_r:
+                    if mcap_r and type(mcap_r) == dict:
                         mcap=int(mcap_r.get("raw"))
                     price_r=sum_det.get("previousClose")
-                    if price_r:
+                    if price_r and type(price_r) == dict:
                         price=round(float(price_r.get("raw")), 2)
                     high_r=sum_det.get("fiftyTwoWeekHigh")
-                    if high_r:
+                    if high_r and type(high_r) == dict:
                         high=round(float(high_r.get("raw")), 2)
                     low_r=sum_det.get("fiftyTwoWeekLow")
-                    if low_r:
+                    if low_r and type(low_r) == dict:
                         low=round(float(low_r.get("raw")), 2)
                 fin_d = sym_d.get("financialData")
                 if fin_d:
                     # log.info("find_d %s"%(fin_d))
                     tcash_r=fin_d.get("totalCash")
-                    if tcash_r:
+                    if tcash_r and type(tcash_r) == dict:
                         tcash=int(tcash_r.get("raw"))
                     tdebt = 0
                     tdebt_r=fin_d.get("totalDebt")
-                    if tdebt_r:
+                    if tdebt_r and type(tdebt_r) == dict:
                         tdebt=int(tdebt_r.get("raw"))
                     #get net cash balance
                     tcash = tcash - tdebt           
