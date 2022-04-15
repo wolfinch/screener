@@ -165,7 +165,7 @@ class OPT_IV(Screener):
         #         ft = [
         #          {"symbol": "aapl", "strike": 2.5, "price": 10.2, "iv": "1.4", "expiry": "200511", "oi": "20", "time": "4"},
         #              ]
-        fmt = {"symbol": "Symbol", "time": "Time", "tpstk": "TP/Stk",  "price": "Price"
+        fmt = {"symbol": "Symbol", "time": "Time", "tpstk": "TP/Stk",  "price": "Price",
                "ev": "EV", "iv": "IV", "oi": "OI", "expiry": "Expiry"}
         return {"format": fmt, "sort": "oi", "data": list(self.filtered_list.values()), "hidden":["time"]}
 
