@@ -214,9 +214,7 @@ class OPT_OI_SPIKE(Screener):
                 log.info('new sym found by screener: %s info:  %s' %(sym, os_s))
                 fs_l.append(os_s)
             # now that we have list of opt. sort the list and get only top 25
-            log.info (">>>>>>>>>> unsorted %s \n\n"%(str(fs_l)))
             fs_l.sort(reverse=True, key=lambda e: e["num_oi"])
-            log.info ("<<<<<<<<<<<<< sorted %s"%(str(fs_l)))
             self.filtered_list = {}  # clear list
             for fs in fs_l[:MAX_SCREENED_TICKERS]:
                 self.filtered_list[fs["symbol"]] = fs

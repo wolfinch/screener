@@ -140,7 +140,8 @@ class OPT_IV(Screener):
                     ext_v = round(abs(abs(strike - tprice) - price), 2)
                     fs = {"symbol": sym, "time": now,
                           "tpstk": str(tprice)+"/"+str(strike),
-                          "evprice": str(ext_v)+"/"+str(price),
+                          "price": price,
+                          "ev": ext_v,
                           "iv": iv,
                           "expiry": exp,
                           "oi": oi,
@@ -164,8 +165,8 @@ class OPT_IV(Screener):
         #         ft = [
         #          {"symbol": "aapl", "strike": 2.5, "price": 10.2, "iv": "1.4", "expiry": "200511", "oi": "20", "time": "4"},
         #              ]
-        fmt = {"symbol": "Symbol", "time": "Time", "tpstk": "TP/Stk",
-               "evprice": "EV/Price", "iv": "IV", "oi": "OI", "expiry": "Expiry"}
+        fmt = {"symbol": "Symbol", "time": "Time", "tpstk": "TP/Stk",  "price": "Price"
+               "ev": "EV", "iv": "IV", "oi": "OI", "expiry": "Expiry"}
         return {"format": fmt, "sort": "oi", "data": list(self.filtered_list.values()), "hidden":["time"]}
 
 # EOF
