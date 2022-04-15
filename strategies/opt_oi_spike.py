@@ -192,13 +192,13 @@ class OPT_OI_SPIKE(Screener):
                     if oi_p_d < 0:
                         num_oi_d = "Puts(-)"
                     else:
-                        num_oi_d = "Puts"
+                        num_oi_d = "Puts(+)"
                     num_oi = abs(oi_p_d)
                 else:
                     if oi_c_d < 0:
                         num_oi_d = "Calls(-)"
                     else:
-                        num_oi_d = "Calls"
+                        num_oi_d = "Calls(+)"
                     num_oi = abs(oi_c_d)
                 high_calls_oi = str(os_c["high_calls_oi"])+"@"+str(os_c["high_calls_strike"])+"/"+str(os_c["high_calls_exp"])
                 high_puts_oi = str(os_c["high_puts_oi"])+"@"+str(os_c["high_puts_strike"])+"/"+str(os_c["high_puts_exp"])
@@ -214,7 +214,9 @@ class OPT_OI_SPIKE(Screener):
                 log.info('new sym found by screener: %s info:  %s' %(sym, os_s))
                 fs_l.append(os_s)
             # now that we have list of opt. sort the list and get only top 25
+            log.info (">>>>>>>>>> unsorted %s \n\n"%(str(fs_l)))
             fs_l.sort(reverse=True, key=lambda e: e["num_oi"])
+            log.info ("<<<<<<<<<<<<< sorted %s"%(str(fs_l)))
             self.filtered_list = {}  # clear list
             for fs in fs_l[:MAX_SCREENED_TICKERS]:
                 self.filtered_list[fs["symbol"]] = fs
