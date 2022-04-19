@@ -159,9 +159,9 @@ class OPT_OI_SPIKE(Screener):
                         if industry == "biotechnology":
                             log.info ("industry biotechnology symbol ignored - %s"%(sym))
                             continue                
-                sum_det = fd.get("summaryDetail")
+                sum_det = fd.get("financialData")
                 if sum_det:
-                    price_r=sum_det.get("previousClose")
+                    price_r=sum_det.get("currentPrice")
                     if price_r:
                         tprice=round(float(price_r.get("raw")), 2)
 

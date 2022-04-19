@@ -94,9 +94,6 @@ class CASH_MCAP(Screener):
                     mcap_r=sum_det.get("marketCap")
                     if mcap_r and type(mcap_r) == dict:
                         mcap=int(mcap_r.get("raw"))
-                    price_r=sum_det.get("previousClose")
-                    if price_r and type(price_r) == dict:
-                        price=round(float(price_r.get("raw")), 2)
                     high_r=sum_det.get("fiftyTwoWeekHigh")
                     if high_r and type(high_r) == dict:
                         high=round(float(high_r.get("raw")), 2)
@@ -105,6 +102,9 @@ class CASH_MCAP(Screener):
                         low=round(float(low_r.get("raw")), 2)
                 fin_d = sym_d.get("financialData")
                 if fin_d:
+                    price_r=fin_d.get("currentPrice")
+                    if price_r and type(price_r) == dict:
+                        price=round(float(price_r.get("raw")), 2)                    
                     # log.info("find_d %s"%(fin_d))
                     tcash_r=fin_d.get("totalCash")
                     if tcash_r and type(tcash_r) == dict:
