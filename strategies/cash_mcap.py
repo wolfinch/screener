@@ -44,14 +44,12 @@ class CASH_MCAP(Screener):
         try:
             t_data = ticker_stats_g.get(self.data_src_name)
             if not t_data:
-                log.error ("ticker data_src_name from screener %s not updated"%(self.data_src_name))
+                log.error ("ticker data_src_name from screener %s not found"%(self.data_src_name))
                 return False
             #make sure all data_src_name available for our list 
-            ## TODO: FIXME: optimize this
-            for sym in sym_list:
-                if not t_data.get(sym):
-                    log.error ("data_src_name for ticker %s not updated"%(sym))
-                    return False
+            if not t_data.updated :
+                log.error ("data_src_name %s not updated"%(self.data_src_name))
+                return False
             return True
         except Exception as e:
             log.critical("exception while get data e: %s exception: %s" % (e, traceback.format_exc()))
