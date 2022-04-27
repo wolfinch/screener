@@ -200,7 +200,7 @@ class OPT_OI_SPIKE(Screener):
                     else:
                         num_oi_d = "Calls(+)"
                     # num_oi = abs(oi_c_d)
-                calls_puts_d = "%d/%d(%s)"%(oi_c_d, oi_p_d, round(oi_c_d/(oi_c_d + oi_p_d), 2))
+                calls_puts_d = "%d/%d(%d)"%(oi_c_d, oi_p_d, 0 if (oi_c_d + oi_p_d) == 0 else round(oi_c_d/(oi_c_d + oi_p_d), 2))
                 high_calls_oi = str(os_c["high_calls_oi"])+"@"+str(os_c["high_calls_strike"])+"/"+str(os_c["high_calls_exp"])
                 high_puts_oi = str(os_c["high_puts_oi"])+"@"+str(os_c["high_puts_strike"])+"/"+str(os_c["high_puts_exp"])
 
@@ -224,7 +224,7 @@ class OPT_OI_SPIKE(Screener):
             log.critical("exception while screen e: %s exception: %s" % (e, traceback.format_exc()))
 
     def get_screened(self):
-        fmt = {"symbol": "Symbol", "time": "Time", "num_oi": "∆OI", "num_oi_d": "C/P", "calls_puts_d": "∆Cs/Ps",
+        fmt = {"symbol": "Symbol", "time": "Time", "num_oi": "∆OI", "num_oi_d": "C/P", "calls_puts_d": "∆C/P(pct)",
                "high_calls_oi": "High Calls OI", "high_puts_oi": "High Puts OI"}
         return {"format": fmt, "sort": "num_oi", "data": list(self.filtered_list.values()), "hidden":["time"]}
 
