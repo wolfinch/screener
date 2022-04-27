@@ -137,7 +137,7 @@ class OPT_IV(Screener):
                     if iv < 0.2:
                         continue
                     #get extrinsic value
-                    ext_v = round(abs(abs(strike - tprice) - price), 2)
+                    ext_v = price if tprice > strike else round(abs(abs(strike - tprice) - price), 2)
                     fs = {"symbol": sym, "time": now,
                           "tpstk": str(tprice)+"/"+str(strike),
                           "price": price,
