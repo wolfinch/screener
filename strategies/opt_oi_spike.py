@@ -206,7 +206,6 @@ class OPT_OI_SPIKE(Screener):
                     cp_pct = 0 if (oi_c_d - oi_p_d) == 0 else round(oi_c_d/(oi_c_d - oi_p_d), 2)
                 else:
                     cp_pct = 0 if oi_p_d == 0 else round(oi_c_d/(oi_p_d), 2)
-                cp_pct = 0 if (oi_c_d + oi_p_d) == 0 else 
                 calls_puts_d = "%d/%d(%s)"%(oi_c_d, oi_p_d, cp_pct)
                 high_calls_oi = str(os_c["high_calls_oi"])+"@"+str(os_c["high_calls_strike"])+"/"+str(os_c["high_calls_exp"])
                 high_puts_oi = str(os_c["high_puts_oi"])+"@"+str(os_c["high_puts_strike"])+"/"+str(os_c["high_puts_exp"])
