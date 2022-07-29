@@ -2,7 +2,7 @@
 '''
 # Wolfinch Stock Screener
 # Desc: File implements Screener ticker list and data collection
-#  Copyright: (c) 2017-2022 Joshith Rayaroth Koderi
+#  Copyright: (c) 2017-2022 Wolfinch Inc.
 #  This file is part of Wolfinch.
 # 
 #  Wolfinch is free software: you can redistribute it and/or modify
