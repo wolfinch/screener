@@ -137,6 +137,7 @@ class CASH_MCAP(Screener):
                     tcash_pct = round((tcash/mcap)*100, 2)
                     #get pricetoBook value
                     key_stats = sym_d.get("defaultKeyStatistics")
+                    ptb = None
                     if key_stats:
                         # log.info("sum_d %s"%(sum_det))
                         ptb_r=key_stats.get("priceToBook")

@@ -4,17 +4,17 @@
 # Desc: File implements Screener ticker list and data collection
 #  Copyright: (c) 2017-2022 Wolfinch Inc.
 #  This file is part of Wolfinch.
-# 
+#
 #  Wolfinch is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
-# 
+#
 #  Wolfinch is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-# 
+#
 #  You should have received a copy of the GNU General Public License
 #  along with Wolfinch.  If not, see <https://www.gnu.org/licenses/>.
 '''
@@ -78,10 +78,10 @@ def get_all_ticker_lists ():
                 all_tickers["LT50M"] = lt50
                 log.info("LT50M (%d) tickers imported"%(len(lt50)))
             #import spacs
-            t_l = get_all_spac_tickers()
-            if t_l:
-                all_tickers["SPAC"] = t_l
-                log.info("SPAC (%d) tickers imported"%(len(t_l)))
+            # t_l = get_all_spac_tickers()
+            # if t_l:
+            #     all_tickers["SPAC"] = t_l
+            #     log.info("SPAC (%d) tickers imported"%(len(t_l)))
             #get filtered list based on vol
             # tl = ["UPH", "ARVL"]
             # all_tickers["GT100M500KLT10"] = tl

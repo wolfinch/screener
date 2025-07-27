@@ -57,6 +57,7 @@ def server_main (port=8080):
             return ""
         return app.send_static_file('stylesheet.css')
 
+    @app.route('/')
     @app.route('/wolfinch/screener')
     @app.route('/<secret>/wolfinch/screener')
     def root_page_api(secret=None):
@@ -66,7 +67,7 @@ def server_main (port=8080):
         return app.send_static_file('index.html')
         
     @app.route('/wolfinch/screener/api/data')
-    @app.route('/screener/api/data')    
+    @app.route('/screener/api/data')
     def get_screener_data_api():     
         try:         
             log.debug("get data")

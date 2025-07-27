@@ -33,7 +33,7 @@ from decimal import getcontext
 import random
 import logging
 from  strategies import Configure
-import notifiers
+# import notifiers
 import tdata
 import ui
 import gc
@@ -83,7 +83,7 @@ def screener_end():
 
     # stop stats thread
     log.info("waiting to stop stats thread")
-    notifiers.end()
+    # notifiers.end()
     ui.ui_end()
     log.info("all cleanup done.")
 
