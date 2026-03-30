@@ -21,8 +21,6 @@
 
 import sys
 import os
-sys.path.append(os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), "../../wolfinch/pkgs"))
-sys.path.append(os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), "../../wolfinch/exchanges"))
 
 import traceback
 import time
@@ -31,7 +29,6 @@ import logging
 import requests
 import pprint
 
-import robinhood 
 import yahoofin as yf
 from utils import getLogger
 import nasdaq
@@ -51,6 +48,7 @@ def init():
         log.info("init robinhood exchange")
         # init_rh()
 def init_rh():
+    import robinhood
     global RH
     ROBINHOOD_CONF = 'config/robinhood.yml'    
     config = {"config": ROBINHOOD_CONF,

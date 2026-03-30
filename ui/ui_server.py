@@ -29,7 +29,7 @@ import threading
 from utils import getLogger
 
 log = getLogger("UI")
-log.setLevel(log.ERROR)
+log.setLevel(log.DEBUG)
 
 static_file_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../data/')
 
@@ -49,6 +49,7 @@ def server_main (port=8080):
     def send_js_api(path, secret=None):
         return app.send_static_file('js/'+path)
 
+    @app.route('/screener/stylesheet.css')
     @app.route('/wolfinch/screener/stylesheet.css')
     @app.route('/<secret>/wolfinch/screener/stylesheet.css')
     def stylesheet_page_api(secret=None):

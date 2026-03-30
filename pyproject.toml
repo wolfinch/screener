@@ -1,0 +1,41 @@
+[project]
+name = "wolfinch-screener"
+version = "1.0.0"
+description = "Wolfinch Stock Screener"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    # Web server
+    "flask>=3.0.0",
+    "werkzeug>=3.0.0",
+    "itsdangerous>=2.1.2",
+    "jinja2>=3.1.3",
+    "markupsafe>=2.1.5",
+    # Database
+    "sqlalchemy>=2.0.0",
+    # HTTP / networking
+    "requests>=2.32.0",
+    "certifi>=2024.0.0",
+    "charset-normalizer>=3.0.0",
+    "urllib3>=2.0.0",
+    # Config / data
+    "pyyaml>=6.0.1",
+    "pyaml>=23.0.0",
+    "python-dateutil>=2.9.0",
+    "pytz>=2024.1",
+    "six>=1.16.0",
+    # Brokers / market data
+    "robin-stocks>=3.2.0",
+    # Required by yahoofin (wolfinch shared package)
+    "websocket-client>=1.7.0",
+]
+
+[tool.uv]
+# Wolfinch shared packages (utils, yahoofin, nasdaq, robinhood exchange) are
+# plain source directories without their own pyproject.toml, so they are made
+# available via PYTHONPATH in run_screener.sh rather than as uv path deps.
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+]
