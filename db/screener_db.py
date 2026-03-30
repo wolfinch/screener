@@ -22,7 +22,10 @@
 from utils import getLogger
 from .db import init_db
 from sqlalchemy import *
-from sqlalchemy.orm import mapper 
+from sqlalchemy import inspect as sa_inspect
+from sqlalchemy.orm import registry
+
+_mapper_registry = registry()
 import json
 
 log = getLogger ('SCREENER-DB')
@@ -35,7 +38,7 @@ class ScreenerDb(object):
         log.info ("init screenerDb : %s "%(screener_name))
         
         self.table_name = "screener_%s"%(screener_name)
-        if not self.db.engine.dialect.has_table(self.db.engine, self.table_name):  # If table don't exist, Create.
+        if not sa_inspect(self.db.engine).has_table(self.table_name):  # If table don't exist, Create.
             # Create a table with the appropriate Columns
             log.info ("creating table: %s"%(self.table_name))            
             self.table = Table(self.table_name, self.db.metadata,
@@ -59,7 +62,7 @@ class ScreenerDb(object):
                         self.updated = False
                         self.update_time = 0
             self.screenerCls = T
-            self.mapping = mapper(self.screenerCls, self.table)
+            self.mapping = _mapper_registry.map_imperatively(self.screenerCls, self.table)
         except Exception as e:
             log.debug ("mapping failed with except: %s \n trying once again with non_primary mapping"%(e))
 #             self.mapping = mapper(screenerCls, self.table, non_primary=True)            

@@ -1,354 +1,302 @@
-<!-- 
-#  Copyright: (c) 2017-2022 Wolfinch Inc.
+<!--
+#  Copyright: (c) 2017-2026 Wolfinch Inc.
 #  This file is part of Wolfinch screener.
-# 
+#
 #  Wolfinch is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
-# 
+#
 #  Wolfinch is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-# 
+#
 #  You should have received a copy of the GNU General Public License
-#  along with Wolfinch.  If not, see <https://www.gnu.org/licenses/>. 
+#  along with Wolfinch.  If not, see <https://www.gnu.org/licenses/>.
 -->
+<!doctype html>
 <html lang="en">
 
 <head>
-<title>Wolfinch Trading Bot</title>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet"
-	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
-<script
-	src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-<script
-	src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
-</head>
+	<title>Wolfinch Screener</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
 
-<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-<script
-	src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
-	integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
-	crossorigin="anonymous"></script> -->
+	<link
+		href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+		rel="stylesheet">
+	<link href="screener/stylesheet.css" rel="stylesheet">
 
-<link href="screener/stylesheet.css" rel="stylesheet">
-<script
-	src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+	<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css">
 
-<script
-	src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
-	integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
-	crossorigin="anonymous"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+	<script type="text/javascript" charset="utf8"
+		src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
+	<script src="https://momentjs.com/downloads/moment.min.js"></script>
 
+	<script type="text/javascript">
+		/* ── Globals ── */
+		var table;
+		var g_total_signals = 0;
+		var g_new_30m = 0, g_new_2h = 0, g_new_24h = 0;
 
-<link rel="stylesheet" type="text/css"
-	href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css">
-
-<script type="text/javascript" charset="utf8"
-	src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
-
-<script src="https://momentjs.com/downloads/moment.min.js"></script>
-<style>
-.mini-box {
-    margin: 1px;
-}
-
-tr {height: 2px; }
-th { font-size: .2em; }
-td { font-size: .2em; }
-
-</style>
-<script type="text/javascript">
-	var table;
-	$(document).ready(function() {
-
-		console.log("load stats");
-		load_screener_tables();
-		setInterval(function() {
-			console.log("refresh tables")
+		$(document).ready(function () {
 			load_screener_tables();
-		}, 1200000);		
-	});
-
-	function add_screener_tables(scrn_data) {
-		Object.keys(scrn_data).forEach(function (scrn_name) {
-			if (!scrn_data[scrn_name] || scrn_data[scrn_name].length == 0) {
-				console.log("invalid data for "+scrn_name)
-				return;
-			}
-
-			if (!scrn_data[scrn_name]["format"] || scrn_data[scrn_name]["format"].length == 0) {
-				console.log("invalid screen format for "+scrn_name)
-				return;
-			}
-
-			if (!scrn_data[scrn_name]["data"] || scrn_data[scrn_name]["data"].length == 0) {
-				console.log("invalid screen data for "+scrn_name)
-				return;
-			}			
-			
-			if ($("#"+scrn_name).length) {
-				console.log("table exsists "+scrn_name)
-				return;
-			}
-			
-			var th = "";
-			for (i=0; i<Object.keys(scrn_data[scrn_name]["format"]).length; i++) {
-				th += '<th style="width: auto;">0</th>'
-			}
-			
-			var scrn_table_tags_bt = `
-		        <div class="col-xs-4">
-		            <div class="row" >
-		                <div class="col-xs-12"><div align="center" class="mini-box"><b>`+scrn_name+`</b></div></div>
-		            </div>
-		            <div class="row">                
-		                <div class="col-xs-12" >
-		                	<div class="mini-box">
-								<table id="`+scrn_name+`" class="display compact">
-								<thead>
-								<tr>` + th +
-								`</tr>
-								</thead>
-								<tbody></tbody>
-								</table>	                
-		                	</div>
-		                </div>
-		            </div>
-	        	</div>					
-				`;
-				
-			$("#scrnTable").append(scrn_table_tags_bt);
+			setInterval(function () {
+				console.log("refresh tables");
+				load_screener_tables();
+			}, 1200000);
 		});
-	}
-	
-	function load_screener_tables() {
-		console.log("loading exchanges and markets");
-		// call api to buy/sell
-		$.ajax({
-			type : 'GET',
-			url : "screener/api/data",
-			dataType : 'json',
-			success : function(data) {
-				console.log("get screener/data success!" + data);
-				add_screener_tables (data);
-				Object.keys(data).forEach(function(scrn_name) {
-					console.log("load scrn_name: "+scrn_name);
-					if (data[scrn_name])
-						load_tables (scrn_name, data[scrn_name]);
-				});
-			},
-			error : function(xhr, error) {
-				console.log("get screener/data failed!");
-				alert(error);
+
+		/* ── Pill-menu toggle ── */
+		function toggleMenu(menuId) {
+			document.querySelectorAll('.pill-menu').forEach(function (m) {
+				if (m.id !== menuId) m.classList.remove('show');
+			});
+			var el = document.getElementById(menuId);
+			if (el) el.classList.toggle('show');
+		}
+		document.addEventListener('click', function (e) {
+			if (!e.target.closest('.pill-select')) {
+				document.querySelectorAll('.pill-menu').forEach(function (m) { m.classList.remove('show'); });
 			}
 		});
 
-	}	
+		/* ── Build screener card containers (first load only) ── */
+		function add_screener_tables(scrn_data) {
+			Object.keys(scrn_data).forEach(function (scrn_name) {
+				if (!scrn_data[scrn_name]) { console.log("invalid data for " + scrn_name); return; }
+				if (!scrn_data[scrn_name]["format"] || scrn_data[scrn_name]["format"].length === 0) {
+					console.log("invalid screen format for " + scrn_name); return;
+				}
+				if (!scrn_data[scrn_name]["data"] || scrn_data[scrn_name]["data"].length === 0) {
+					console.log("invalid screen data for " + scrn_name); return;
+				}
+				if ($("#" + scrn_name).length) { console.log("table exists " + scrn_name); return; }
 
-	function load_tables(scrn_name, data_d) {
-		console.log("load scrn_name "+scrn_name+" data : "+data_d);
-		var fmt = data_d["format"]
-		var data = data_d["data"]
-		var sort = data_d["sort"]
-		var hidden = data_d["hidden"]
-		if (!data || !fmt) {
-			console.log("invalid data or format")
-			return;
+				var th = "";
+				for (var i = 0; i < Object.keys(scrn_data[scrn_name]["format"]).length; i++) {
+					th += '<th>0</th>';
+				}
+
+				var card_html = `
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">
+              <span class="dot"></span>
+              ${scrn_name}
+            </div>
+            <span class="chip" id="chip_${scrn_name}">—</span>
+          </div>
+          <div class="tbl-wrap">
+            <table id="${scrn_name}" class="display compact scrn-table" style="width:100%">
+              <thead><tr>${th}</tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>`;
+
+				$("#scrnTable").append(card_html);
+			});
 		}
 
- 		if ($.fn.dataTable.isDataTable('#'+scrn_name)) { 			
- 			var table = $.fn.dataTable.tables({ api: true }).table('#'+scrn_name); 
-			// previously init, just reload once and don't mess with timers
-			//table.ajax.reload(null, false); // user paging is not reset on reload
-			//table.data.apply();
-			// data.splice(0, 1);		
-			table.clear().draw().rows.add(data).columns.adjust().draw();
-			return;
+		/* ── Fetch data from API ── */
+		function load_screener_tables() {
+			console.log("loading screener data");
+			$.ajax({
+				type: 'GET',
+				url: 'screener/api/data',
+				dataType: 'json',
+				success: function (data) {
+					console.log("get screener/data success!");
+					add_screener_tables(data);
+					// reset global counters
+					g_total_signals = 0; g_new_30m = 0; g_new_2h = 0; g_new_24h = 0;
+					Object.keys(data).forEach(function (scrn_name) {
+						if (data[scrn_name]) load_tables(scrn_name, data[scrn_name]);
+					});
+					update_stat_bar();
+				},
+				error: function (xhr, error) {
+					console.log("get screener/data failed!");
+					alert(error);
+				}
+			});
 		}
 
-/* 	var dataSet = [
-		 {"symbol": "aapl", "last_price": "10.2", "change": "10", "pct_change": "2"},
-		 {"symbol": "codx", "last_price": "13.2", "change": "10", "pct_change": "2"}			
-			 ] ; */
-		 
-		var columns = [];//{"title":"time", data: "time", name: "time", "visible": false}];
-		var sort_idx = 0;			 
-		Object.keys(fmt).forEach(function(key, idx){
-			//console.log("idx - "+idx)
-			if (sort && key == sort) {
-				sort_idx = idx
+		/* ── Update stat bar counts ── */
+		function update_stat_bar() {
+			$("#stat_total").text(g_total_signals);
+			$("#stat_30m").text(g_new_30m);
+			$("#stat_2h").text(g_new_2h);
+			$("#stat_24h").text(g_new_24h);
+			$("#stat_updated").text("just now");
+		}
+
+		/* ── Load / refresh a single screener table ── */
+		function load_tables(scrn_name, data_d) {
+			console.log("load scrn_name " + scrn_name);
+			var fmt = data_d["format"];
+			var data = data_d["data"];
+			var sort = data_d["sort"];
+			var hidden = data_d["hidden"];
+
+			if (!data || !fmt) { console.log("invalid data or format"); return; }
+
+			/* Count signals for stat bar */
+			var now = Date.now() / 1000;
+			(data || []).forEach(function (row) {
+				if (row.time) {
+					g_total_signals++;
+					if (now - 30 * 60 <= row.time) g_new_30m++;
+					if (now - 2 * 3600 <= row.time) g_new_2h++;
+					if (now - 24 * 3600 <= row.time) g_new_24h++;
+				}
+			});
+
+			/* Update row-count chip */
+			var chip = document.getElementById("chip_" + scrn_name);
+			if (chip) chip.textContent = (data.length || 0) + " rows";
+
+			/* Already initialized – just reload data */
+			if ($.fn.dataTable.isDataTable('#' + scrn_name)) {
+				var t = $.fn.dataTable.tables({ api: true }).table('#' + scrn_name);
+				t.clear().draw().rows.add(data).columns.adjust().draw();
+				return;
 			}
-			visible = true
-			if (hidden && hidden.length > 0) {
-				for (i=0; i < hidden.length; i++) {
-					if (key == hidden[i]) {
-						visible = false
+
+			/* Build column definitions */
+			var columns = [];
+			var sort_idx = 0;
+			Object.keys(fmt).forEach(function (key, idx) {
+				if (sort && key === sort) sort_idx = idx;
+
+				var visible = true;
+				if (hidden && hidden.length > 0) {
+					for (var i = 0; i < hidden.length; i++) {
+						if (key === hidden[i]) { visible = false; }
 					}
 				}
-			}			
-			if (key == "time") {
-				//sort_idx = idx
-				columns.push({title : fmt["time"], data : "time", 
-				render : function(time, type, row) {
-					if (time != undefined
-							&& time != 'None'
-							&& time != null) {
-						date = moment(time*1000);
-						//console.log(date.fromNow());
 
-						if (type == "sort") {
-							//console.log(date.unix());																	
-							return date.unix();
-						} else {
-							return date.fromNow();
-							//return data.closed_time;
-						}
-					} else {
-						return "-";
+				if (key === "time") {
+					columns.push({
+						title: fmt["time"], data: "time",
+						render: function (time, type) {
+							if (time != null && time !== 'None' && time !== undefined) {
+								var d = moment(time * 1000);
+								return type === "sort" ? d.unix() : d.fromNow();
+							}
+							return "-";
+						},
+						name: "time", visible: visible
+					});
+				} else if (key === "symbol") {
+					columns.push({
+						title: fmt["symbol"], data: "symbol",
+						render: function (symbol, type) {
+							if (type === "sort") return symbol;
+							return '<a href="https://finance.yahoo.com/quote/' + symbol + '" target="_blank">' + symbol + '</a>';
+						},
+						name: "symbol"
+					});
+				} else {
+					columns.push({ title: fmt[key], data: key, name: key, visible: visible });
+				}
+			});
+
+			/* Init DataTable */
+			table = $('#' + scrn_name).DataTable({
+				data: data,
+				processing: true,
+				pageLength: 25,
+				columns: columns,
+				order: [[sort_idx, "desc"]],
+				responsive: true,
+				scrollY: '35vh',
+				fixedColumns: { heightMatch: 'none' },
+				"rowCallback": function (nRow, aData) {
+					var now_s = Date.now() / 1000;
+
+					/* Recency row class */
+					$(nRow).removeClass('row-hot row-warm row-cool');
+					if (aData.time && now_s - 24 * 3600 <= aData.time) {
+						if (now_s - 30 * 60 <= aData.time) $(nRow).addClass('row-hot');
+						else if (now_s - 2 * 3600 <= aData.time) $(nRow).addClass('row-warm');
+						else $(nRow).addClass('row-cool');
 					}
-				},
-				name: "time", 'visible' : visible });				
-			} else if (key == "symbol") {
-				columns.push({title : fmt["symbol"], data : "symbol", 
-					render : function(symbol, type, row) {
-						if (type == "sort") {
-							//console.log(date.unix());																	
-							return symbol;
-						} else {
-							symhref = `<a href="https://finance.yahoo.com/quote/`+symbol+`" target="_blank">`+symbol+`</a>`;
-							return symhref
-						}
-					},
-					name: "symbol"});		
-			} else {
-				columns.push({title : fmt[key], data : key, name:key, 'visible' : visible});
-			}
-		});
 
-		// sort_idx = columns.length-1;
-		// if  (sort){
-		// 	for ( i=0; i< columns.length; i++) {
-		// 		if (columns[i].data == sort) {
-		// 			sort_idx = i
-		// 			break
-		// 		}
-		// 	}
-		// }
-		// data.splice(0, 1);		
-		data = data_d["data"]
-		table = $('#'+scrn_name).DataTable(
-				{
-					data : data,
-					//ajax: '/api/data',
-					"processing" : true,
-					pageLength : 25,
-/* 					ajax : {
-						//url : "/api/screener/data",
- 			 			data : dataSet,
-						//dataSrc : dataSet
-					}, */
-					columns : columns,
-					"order" : [ [ sort_idx, "desc" ] ], // sort by time
-					responsive : true,
-			        fixedColumns:   {
-			            heightMatch: 'none'
-			        },
-					scrollY		:   '30vh',
-					"rowCallback": function(nRow, aData, iDataIndex) {
-								console.log("aRow :"+nRow+" aData.time: "+aData.time+" iDataIndex: "+iDataIndex)
-							    var new1 = "#05fcc7";
-								var new2 = "#7dffe3";
-								var new3 = "#c8faef";
-							    var red = "#f56a2f";
-							    var green = "#7efa6b";
-							    
-							    var now = Date.now()/1000;
-							    if (now - 24*3600 <= aData.time) {
-									if (now - 2*3600 <= aData.time) {
-								    	console.log("within 2 hrs ");
-									    if (now - 30*60 <= aData.time) {
-									    	console.log("within 30 mins");
-										    $('td', nRow).css('background-color', new1);
-									    } else {								    	
-							      			$('td', nRow).css('background-color', new2);
-										}
-								    } else {
-							    	//$nRow.css({"background-color":"red"})
-								    	console.log("within a day");							    	
-							      		$('td', nRow).css('background-color', new3);
-								    }
-							    }							    
-							    
-							    for (var i=0; i < this.dataTableSettings[0].aoColumns.length; i++) {
-							    	if (this.dataTableSettings[0].aoColumns[i].data == "cur_price_change") {
-							    		if (aData["cur_price_change"] < aData["price_change"]) {
-											$(nRow).find('td:eq('+(i)+')').css('background-color', red);
-							    		} else if (aData["cur_price_change"] >= aData["price_change"]) {
-											$(nRow).find('td:eq('+(i)+')').css('background-color', green);
-							    		}
-										break;
-									}
-							    }							
-							}					
-				});
-	}
-</script>
+					/* Price-change cell highlight */
+					for (var i = 0; i < this.dataTableSettings[0].aoColumns.length; i++) {
+						if (this.dataTableSettings[0].aoColumns[i].data === "cur_price_change") {
+							var cell = $(nRow).find('td:eq(' + i + ')');
+							cell.removeClass('cell-up cell-down');
+							if (aData["cur_price_change"] < aData["price_change"]) cell.addClass('cell-down');
+							else if (aData["cur_price_change"] >= aData["price_change"]) cell.addClass('cell-up');
+							break;
+						}
+					}
+				}
+			});
+		}
+	</script>
+</head>
 
 <body>
-	<div class="row align-items-start">
-		<div class="col-12">
-			<div class="navbar navbar-inverse navbar-static-top">
-				<div class="container">
-					<header class="clearfix">
-						<h3 class="brand">
-							<a href="/">Wolfinch</a>
-						</h3>
-						<ul class="nav masthead-nav">
-							<li class="active"><a href="/"> Home</a></li>
-							<li><a href="/wolfinch/chart.html">Charts </a></li>
-							<li><a href="/wolfinch/trading.html"> Trading</a></li>
-							<li><a href="/"> Documentation</a></li>
-						</ul>
-					</header>
-				</div>
+
+	<!-- ── Top Nav ── -->
+	<nav class="top-nav">
+		<a class="brand-link" href="/">
+			<span class="b-accent">W</span>olfinch
+			<span class="b-sub">/ Screener</span>
+		</a>
+		<div class="nav-sep"></div>
+		<div class="pill-select">
+			<div class="pill-btn" onclick="toggleMenu('scrn-menu')">
+				All Screeners <span class="caret">▾</span>
 			</div>
+			<ul class="pill-menu" id="scrn-menu">
+				<li><a href="#">All Screeners</a></li>
+			</ul>
 		</div>
-	</div>
-	<div>
-		<p></p>
-		<p></p>
+		<div class="nav-links">
+			<a href="#" class="active">Screener</a>
+			<a href="/wolfinch/chart.html">Charts</a>
+			<a href="/wolfinch/trading.html">Trading</a>
+		</div>
+	</nav>
+
+	<!-- ── Stat Bar ── -->
+	<div class="stat-bar">
+		<div class="stat-item">
+			<span class="stat-label">Total Signals</span>
+			<span class="stat-value sv-cyan" id="stat_total">—</span>
+		</div>
+		<div class="stat-item">
+			<span class="stat-label">New (30 min)</span>
+			<span class="stat-value sv-green" id="stat_30m">—</span>
+		</div>
+		<div class="stat-item">
+			<span class="stat-label">New (2 hr)</span>
+			<span class="stat-value sv-yellow" id="stat_2h">—</span>
+		</div>
+		<div class="stat-item">
+			<span class="stat-label">New (24 hr)</span>
+			<span class="stat-value" id="stat_24h">—</span>
+		</div>
+		<div class="stat-item">
+			<span class="stat-label">Last Updated</span>
+			<span class="stat-value" style="font-size:.78rem" id="stat_updated">—</span>
+		</div>
 	</div>
 
-	<div class="container" style="padding-right: 1em;">
-		<div class="row">
-			<div class="table-responsive">
-				<table id="scrnTable1" style="margin: false; height: auto;" border="1">
-					<tbody style="vertical-align: top">
-					</tbody>
-				</table>
-			</div>
-		</div>
+	<!-- ── Page Body ── -->
+	<div class="page-body">
+		<div id="scrnTable" class="scrn-grid"></div>
 	</div>
-	
-	<div class="container" style="padding-right: 1em;">
-		<div id="scrnTable" class="row"></div>
-	</div>	
 
-	<footer class="footer">
-		<div class="container">
-			<p>
-				<small>
-					<div class="row">
-						<em>&copy; 2017-2022 Wolfinch Screener</em>
-					</div>
-				</small>
-			</p>
-		</div>
-	</footer>
+	<footer class="footer">© 2017-2026 Wolfinch Screener</footer>
+
 </body>
+
 </html>
