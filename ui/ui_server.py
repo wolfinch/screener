@@ -23,7 +23,7 @@ from decimal import getcontext
 import argparse
 import os
 import json
-from flask import Flask
+from flask import Flask, request, jsonify
 import threading
 
 from utils import getLogger
@@ -37,7 +37,10 @@ UI_CODES_FILE = "data/ui_codes.json"
 UI_TRADE_SECRET = None
 UI_PAGE_SECRET = None
 
+g_options_tickers = []
+
 def server_main (port=8080):
+    global g_options_tickers
         
     app = Flask(__name__, static_folder='web/', static_url_path='/web/')
     
@@ -78,6 +81,39 @@ def server_main (port=8080):
             log.error ("Unable to get screener data. Exception: %s", e)
             return "[]"
             
+    @app.route('/screener/api/options/tickers', methods=['GET'])
+    @app.route('/wolfinch/screener/api/options/tickers', methods=['GET'])
+    def get_options_tickers_api():
+        return jsonify({"tickers": g_options_tickers})
+
+    @app.route('/screener/api/options/tickers', methods=['POST'])
+    @app.route('/wolfinch/screener/api/options/tickers', methods=['POST'])
+    def add_options_ticker_api():
+        global g_options_tickers
+        try:
+            data = request.get_json()
+            ticker = data.get('ticker', '').strip().upper()
+            if ticker and ticker not in g_options_tickers:
+                g_options_tickers.append(ticker)
+                log.debug("added options ticker: %s", ticker)
+        except Exception as e:
+            log.error("failed to add options ticker: %s", e)
+        return jsonify({"tickers": g_options_tickers})
+
+    @app.route('/screener/api/options/tickers', methods=['DELETE'])
+    @app.route('/wolfinch/screener/api/options/tickers', methods=['DELETE'])
+    def remove_options_ticker_api():
+        global g_options_tickers
+        try:
+            data = request.get_json()
+            ticker = data.get('ticker', '').strip().upper()
+            if ticker in g_options_tickers:
+                g_options_tickers.remove(ticker)
+                log.debug("removed options ticker: %s", ticker)
+        except Exception as e:
+            log.error("failed to remove options ticker: %s", e)
+        return jsonify({"tickers": g_options_tickers})
+
     log.debug("static_dir: %s root: %s" % (static_file_dir, app.root_path))
     
     log.debug ("starting server..")

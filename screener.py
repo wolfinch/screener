@@ -21,30 +21,34 @@
 
 import sys
 import os
-
-from strategies.screener_base import Tstats
-
 import time
 import traceback
 import argparse
 from decimal import getcontext
 import random
 import logging
-from  strategies import Configure
-# import notifiers
-import tdata
-import ui
 import gc
 
-from utils import getLogger, readConf
-from db import ScreenerDb, clear_db
+# detect --sim early before heavy imports
+g_sim_mode = '--sim' in sys.argv
 
-log = getLogger("Screener")
-log.setLevel(logging.ERROR)
+if not g_sim_mode:
+    from strategies.screener_base import Tstats
+    from strategies import Configure
+    # import notifiers
+    import tdata
+    from utils import getLogger, readConf
+    from db import ScreenerDb, clear_db
+    log = getLogger("Screener")
+    log.setLevel(logging.ERROR)
+    # mpl_logger = logging.getLogger('matplotlib')
+    # mpl_logger.setLevel(logging.WARNING)
+    logging.getLogger("urllib3").setLevel(log.WARNING)
+else:
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s %(name)s %(levelname)s %(message)s')
+    log = logging.getLogger("Screener")
 
-# mpl_logger = logging.getLogger('matplotlib')
-# mpl_logger.setLevel(logging.WARNING)
-logging.getLogger("urllib3").setLevel(log.WARNING)
+import ui
 
 ScreenerConfig = None
 ticker_import_time = 0
@@ -56,6 +60,12 @@ def screener_init():
     global ScreenerConfig
     # seed random
     random.seed()
+
+    if g_sim_mode:
+        print("Running in SIMULATION mode with fake data")
+        log.info("sim mode - skipping data init and screener registration")
+        ui.ui_init(port=8080, get_data_cb=get_screener_data)
+        return
 
     #init data source
     tdata.init()
@@ -89,6 +99,12 @@ def screener_main():
     """
     Main Function for Screener
     """
+    if g_sim_mode:
+        log.info("sim mode - idle loop")
+        while True:
+            time.sleep(5)
+        return
+
     sleep_time = MAIN_TICK_DELAY
     gc_time = 0
     while True:
@@ -180,8 +196,39 @@ def get_all_tickers ():
         ticker_import_time = int(time.time())
     return all_tickers
     
+def get_sim_screener_data():
+    now = int(time.time())
+    sim_tickers = [
+        {"symbol": "AAPL",  "last_price": 189.45, "price_change": 2.31,  "cur_price_change": 2.55,  "vol_change": 145.2, "cur_vol_change": 150.1, "time": now - 300},
+        {"symbol": "TSLA",  "last_price": 248.10, "price_change": -1.82, "cur_price_change": -1.50, "vol_change": 210.5, "cur_vol_change": 215.3, "time": now - 900},
+        {"symbol": "NVDA",  "last_price": 135.72, "price_change": 5.14,  "cur_price_change": 5.40,  "vol_change": 320.0, "cur_vol_change": 330.8, "time": now - 60},
+        {"symbol": "AMD",   "last_price": 164.33, "price_change": 3.67,  "cur_price_change": 3.90,  "vol_change": 180.3, "cur_vol_change": 185.0, "time": now - 1800},
+        {"symbol": "MSFT",  "last_price": 425.88, "price_change": 0.95,  "cur_price_change": 1.10,  "vol_change": 110.7, "cur_vol_change": 112.4, "time": now - 5400},
+        {"symbol": "GOOGL", "last_price": 176.20, "price_change": -0.45, "cur_price_change": -0.30, "vol_change": 95.1,  "cur_vol_change": 98.2,  "time": now - 7200},
+        {"symbol": "META",  "last_price": 510.34, "price_change": 1.78,  "cur_price_change": 2.00,  "vol_change": 155.6, "cur_vol_change": 160.0, "time": now - 3600},
+        {"symbol": "AMZN",  "last_price": 186.50, "price_change": -2.10, "cur_price_change": -1.80, "vol_change": 200.4, "cur_vol_change": 205.1, "time": now - 600},
+        {"symbol": "NFLX",  "last_price": 628.90, "price_change": 4.22,  "cur_price_change": 4.50,  "vol_change": 275.0, "cur_vol_change": 280.3, "time": now - 120},
+        {"symbol": "SOFI",  "last_price": 8.75,   "price_change": 6.50,  "cur_price_change": 7.10,  "vol_change": 450.2, "cur_vol_change": 460.0, "time": now - 180},
+    ]
+    sim_tickers_2 = [
+        {"symbol": "PLTR",  "last_price": 24.15,  "price_change": 3.10,  "cur_price_change": 3.40,  "vol_change": 190.5, "cur_vol_change": 195.0, "time": now - 400},
+        {"symbol": "RIVN",  "last_price": 11.82,  "price_change": -4.50, "cur_price_change": -4.10, "vol_change": 310.2, "cur_vol_change": 315.0, "time": now - 2400},
+        {"symbol": "COIN",  "last_price": 225.60, "price_change": 7.20,  "cur_price_change": 7.80,  "vol_change": 380.1, "cur_vol_change": 390.5, "time": now - 90},
+        {"symbol": "MARA",  "last_price": 19.44,  "price_change": 12.30, "cur_price_change": 13.00, "vol_change": 520.0, "cur_vol_change": 540.2, "time": now - 45},
+        {"symbol": "SNAP",  "last_price": 11.20,  "price_change": -3.20, "cur_price_change": -2.90, "vol_change": 160.8, "cur_vol_change": 165.0, "time": now - 86000},
+    ]
+    fmt = {"symbol": "symbol", "last_price": "last price",
+           "price_change": "% price", "cur_price_change": "% cur price",
+           "vol_change": "% vol", "cur_vol_change": "% cur vol", "time": "time"}
+    return {
+        "SIM-VOL-SPIKE-MEGACAP": {"format": fmt, "data": sim_tickers, "sort": "time"},
+        "SIM-VOL-SPIKE-SMALL": {"format": fmt, "data": sim_tickers_2, "sort": "time"}
+    }
+
 def get_screener_data():
 #     log.info("msg %s"%(msg))
+    if g_sim_mode:
+        return get_sim_screener_data()
     data_set = get_all_screener_data()
     return data_set
 
@@ -208,8 +255,13 @@ def arg_parse():
     parser.add_argument("--config", help='Wolfinch Screener config file')    
     parser.add_argument("--port", help='API Port')
     parser.add_argument("--restart", help='restart from the previous state', action='store_true')
+    parser.add_argument("--sim", help='Run in simulation mode with fake data (no config needed)', action='store_true')
 
     args = parser.parse_args()
+
+    if args.sim:
+        log.info("sim mode enabled")
+        return
     
     if args.config:
         log.debug("config file: %s" % (str(args.config)))

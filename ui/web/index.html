@@ -40,6 +40,7 @@
 		var table;
 		var g_total_signals = 0;
 		var g_new_30m = 0, g_new_2h = 0, g_new_24h = 0;
+		var g_options_tickers = [];
 
 		$(document).ready(function () {
 			load_screener_tables();
@@ -48,6 +49,104 @@
 				load_screener_tables();
 			}, 1200000);
 		});
+
+		/* ── Tab switching ── */
+		function switchTab(tabId) {
+			document.querySelectorAll('.tab-panel').forEach(function (p) {
+				p.classList.remove('active');
+			});
+			document.querySelectorAll('.tab-btn').forEach(function (b) {
+				b.classList.remove('active');
+			});
+			var panel = document.getElementById('panel-' + tabId);
+			if (panel) panel.classList.add('active');
+			var btn = document.getElementById('tab-' + tabId);
+			if (btn) btn.classList.add('active');
+
+			var wlPill = document.getElementById('opt-watchlist-pill');
+			if (tabId === 'options') {
+				if (wlPill) wlPill.style.display = '';
+				load_options_tickers();
+			} else {
+				if (wlPill) wlPill.style.display = 'none';
+			}
+		}
+
+		/* ── Options ticker management ── */
+		function load_options_tickers() {
+			$.ajax({
+				type: 'GET',
+				url: 'screener/api/options/tickers',
+				dataType: 'json',
+				success: function (data) {
+					g_options_tickers = data.tickers || [];
+					render_options_tickers();
+				},
+				error: function () {
+					console.log("failed to load options tickers");
+				}
+			});
+		}
+
+		function render_options_tickers() {
+			var list = $('#options-ticker-list');
+			list.empty();
+			$('#opt-ticker-count').text(g_options_tickers.length);
+			if (g_options_tickers.length === 0) {
+				list.append('<div class="opt-ticker-empty">No tickers added yet</div>');
+				return;
+			}
+			g_options_tickers.forEach(function (t) {
+				list.append(
+					'<div class="opt-ticker-item">' +
+					'<span class="opt-ticker-sym">' + t + '</span>' +
+					'<button class="opt-ticker-rm" onclick="remove_options_ticker(\'' + t + '\')">&#x2715;</button>' +
+					'</div>'
+				);
+			});
+		}
+
+		function add_options_ticker() {
+			var input = document.getElementById('opt-ticker-input');
+			var sym = input.value.trim().toUpperCase();
+			if (!sym) return;
+			$.ajax({
+				type: 'POST',
+				url: 'screener/api/options/tickers',
+				contentType: 'application/json',
+				data: JSON.stringify({ ticker: sym }),
+				dataType: 'json',
+				success: function (data) {
+					input.value = '';
+					g_options_tickers = data.tickers || [];
+					render_options_tickers();
+				},
+				error: function () {
+					console.log("failed to add options ticker");
+				}
+			});
+		}
+
+		function remove_options_ticker(sym) {
+			$.ajax({
+				type: 'DELETE',
+				url: 'screener/api/options/tickers',
+				contentType: 'application/json',
+				data: JSON.stringify({ ticker: sym }),
+				dataType: 'json',
+				success: function (data) {
+					g_options_tickers = data.tickers || [];
+					render_options_tickers();
+				},
+				error: function () {
+					console.log("failed to remove options ticker");
+				}
+			});
+		}
+
+		function handle_ticker_keypress(e) {
+			if (e.key === 'Enter') add_options_ticker();
+		}
 
 		/* ── Pill-menu toggle ── */
 		function toggleMenu(menuId) {
@@ -266,33 +365,80 @@
 		</div>
 	</nav>
 
-	<!-- ── Stat Bar ── -->
-	<div class="stat-bar">
-		<div class="stat-item">
-			<span class="stat-label">Total Signals</span>
-			<span class="stat-value sv-cyan" id="stat_total">—</span>
-		</div>
-		<div class="stat-item">
-			<span class="stat-label">New (30 min)</span>
-			<span class="stat-value sv-green" id="stat_30m">—</span>
-		</div>
-		<div class="stat-item">
-			<span class="stat-label">New (2 hr)</span>
-			<span class="stat-value sv-yellow" id="stat_2h">—</span>
-		</div>
-		<div class="stat-item">
-			<span class="stat-label">New (24 hr)</span>
-			<span class="stat-value" id="stat_24h">—</span>
-		</div>
-		<div class="stat-item">
-			<span class="stat-label">Last Updated</span>
-			<span class="stat-value" style="font-size:.78rem" id="stat_updated">—</span>
+	<!-- ── Tab Bar ── -->
+	<div class="tab-bar">
+		<button class="tab-btn active" id="tab-dashboard" onclick="switchTab('dashboard')">Dashboard</button>
+		<button class="tab-btn" id="tab-options" onclick="switchTab('options')">Options</button>
+		<div class="tab-bar-right">
+			<div class="pill-select" id="opt-watchlist-pill" style="display:none">
+				<div class="pill-btn" onclick="toggleMenu('opt-wl-menu')">
+					Watchlist <span class="chip chip-inline" id="opt-ticker-count">0</span> <span class="caret">▾</span>
+				</div>
+				<div class="pill-menu pill-menu-right" id="opt-wl-menu">
+					<div class="opt-ticker-add">
+						<input type="text" id="opt-ticker-input" class="opt-input"
+							placeholder="e.g. AAPL" onkeypress="handle_ticker_keypress(event)">
+						<button class="opt-add-btn" onclick="add_options_ticker()">Add</button>
+					</div>
+					<div id="options-ticker-list" class="opt-ticker-list">
+						<div class="opt-ticker-empty">No tickers added yet</div>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
 
-	<!-- ── Page Body ── -->
-	<div class="page-body">
-		<div id="scrnTable" class="scrn-grid"></div>
+	<!-- ══════════ Dashboard Tab ══════════ -->
+	<div class="tab-panel active" id="panel-dashboard">
+
+		<!-- ── Stat Bar ── -->
+		<div class="stat-bar">
+			<div class="stat-item">
+				<span class="stat-label">Total Signals</span>
+				<span class="stat-value sv-cyan" id="stat_total">—</span>
+			</div>
+			<div class="stat-item">
+				<span class="stat-label">New (30 min)</span>
+				<span class="stat-value sv-green" id="stat_30m">—</span>
+			</div>
+			<div class="stat-item">
+				<span class="stat-label">New (2 hr)</span>
+				<span class="stat-value sv-yellow" id="stat_2h">—</span>
+			</div>
+			<div class="stat-item">
+				<span class="stat-label">New (24 hr)</span>
+				<span class="stat-value" id="stat_24h">—</span>
+			</div>
+			<div class="stat-item">
+				<span class="stat-label">Last Updated</span>
+				<span class="stat-value" style="font-size:.78rem" id="stat_updated">—</span>
+			</div>
+		</div>
+
+		<!-- ── Page Body ── -->
+		<div class="page-body">
+			<div id="scrnTable" class="scrn-grid"></div>
+		</div>
+
+	</div>
+
+	<!-- ══════════ Options Tab ══════════ -->
+	<div class="tab-panel" id="panel-options">
+		<div class="page-body">
+			<div class="card">
+				<div class="card-head">
+					<div class="card-title">
+						<span class="dot dot-cyan"></span>
+						Options Analysis
+					</div>
+				</div>
+				<div class="options-placeholder">
+					<div class="placeholder-icon">&#x1F4C8;</div>
+					<p>Add tickers from the Watchlist dropdown to start viewing options data.</p>
+					<p class="text-muted">Charts and analysis will appear here.</p>
+				</div>
+			</div>
+		</div>
 	</div>
 
 	<footer class="footer">© 2017-2026 Wolfinch Screener</footer>
