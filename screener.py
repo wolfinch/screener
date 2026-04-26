@@ -93,8 +93,13 @@ def screener_main():
     gc_time = 0
     while True:
         cur_time = time.time()
-        update_data()
-        process_screeners()
+        try:
+            update_data()
+            process_screeners()
+        except Exception as e:
+            log.critical("exception in main loop: %s" %(traceback.format_exc()))
+            print("exception in main loop: %s" %(traceback.format_exc()), flush=True)
+            time.sleep(10)
         if gc_time + 6*60*60 < int(time.time()):
             log.info("force garbage collect")
             gc.collect()
@@ -172,6 +177,7 @@ def get_all_tickers ():
     log.debug ("get all tickers")
     if ticker_import_time + 24*3600 < int(time.time()) :
         all_tickers = tdata.get_all_ticker_lists()
+        ticker_import_time = int(time.time())
     return all_tickers
     
 def get_screener_data():
@@ -254,7 +260,7 @@ if __name__ == '__main__':
         sys.exit()
     except Exception as e:
         log.critical("Unexpected error: exception: %s" %(traceback.format_exc()))
-        print("Unexpected error: exception: %s" %(traceback.format_exc()))
+        print("Unexpected error: exception: %s" %(traceback.format_exc()), flush=True)
         screener_end()
         raise
 #         traceback.print_exc()
