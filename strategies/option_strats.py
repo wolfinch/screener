@@ -218,6 +218,9 @@ def _fetch_and_store(sym):
         return
 
     today_str = datetime.date.today().strftime("%Y-%m-%d")
+    # persist full raw chain before aggregation
+    if _db:
+        _db.save_raw_chain(sym, today_str, chains)
     call_oi = 0; put_oi = 0; call_vol = 0; put_vol = 0
     call_prem = 0; put_prem = 0
     call_strikes = []
