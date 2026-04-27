@@ -34,12 +34,16 @@
 	<script type="text/javascript" charset="utf8"
 		src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
 	<script src="https://momentjs.com/downloads/moment.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
 	<script type="text/javascript">
 		/* ── Globals ── */
 		var table;
 		var g_total_signals = 0;
 		var g_new_30m = 0, g_new_2h = 0, g_new_24h = 0;
+		var g_options_tickers = [];
+		var g_selected_ticker = null;
+		var g_options_charts = {};
 
 		$(document).ready(function () {
 			load_screener_tables();
@@ -48,6 +52,111 @@
 				load_screener_tables();
 			}, 1200000);
 		});
+
+		/* ── Tab switching ── */
+		function switchTab(tabId) {
+			document.querySelectorAll('.tab-panel').forEach(function (p) {
+				p.classList.remove('active');
+			});
+			document.querySelectorAll('.tab-btn').forEach(function (b) {
+				b.classList.remove('active');
+			});
+			var panel = document.getElementById('panel-' + tabId);
+			if (panel) panel.classList.add('active');
+			var btn = document.getElementById('tab-' + tabId);
+			if (btn) btn.classList.add('active');
+
+			if (tabId === 'options') {
+				load_options_tickers();
+			}
+		}
+
+		/* ── Options ticker management ── */
+		function load_options_tickers() {
+			$.ajax({
+				type: 'GET',
+				url: 'screener/api/options/tickers',
+				dataType: 'json',
+				success: function (data) {
+					g_options_tickers = data.tickers || [];
+					render_options_tickers();
+				},
+				error: function () {
+					console.log("failed to load options tickers");
+				}
+			});
+		}
+
+		function render_options_tickers() {
+			var list = $('#options-ticker-list');
+			list.empty();
+			$('#opt-ticker-count').text(g_options_tickers.length);
+			if (g_options_tickers.length === 0) {
+				g_selected_ticker = null;
+				$('#opt-chart-area').html(
+					'<div class="options-placeholder"><div class="placeholder-icon">&#x1F4C8;</div>' +
+					'<p>Add tickers to view options flow charts.</p></div>'
+				);
+				list.append('<div class="opt-ticker-empty">No tickers added yet</div>');
+				return;
+			}
+			g_options_tickers.forEach(function (t) {
+				var sel = (t === g_selected_ticker) ? ' opt-ticker-selected' : '';
+				list.append(
+					'<div class="opt-ticker-item' + sel + '" onclick="select_options_ticker(\'' + t + '\')">' +
+					'<span class="opt-ticker-sym">' + t + '</span>' +
+					'<button class="opt-ticker-rm" onclick="event.stopPropagation(); remove_options_ticker(\'' + t + '\')">&#x2715;</button>' +
+					'</div>'
+				);
+			});
+			if (!g_selected_ticker || g_options_tickers.indexOf(g_selected_ticker) < 0) {
+				select_options_ticker(g_options_tickers[0]);
+			}
+		}
+
+		function add_options_ticker() {
+			var input = document.getElementById('opt-ticker-input');
+			var sym = input.value.trim().toUpperCase();
+			if (!sym) return;
+			$.ajax({
+				type: 'POST',
+				url: 'screener/api/options/tickers',
+				contentType: 'application/json',
+				data: JSON.stringify({ ticker: sym }),
+				dataType: 'json',
+				success: function (data) {
+					input.value = '';
+					g_options_tickers = data.tickers || [];
+					if (!g_selected_ticker) g_selected_ticker = sym;
+					render_options_tickers();
+				},
+				error: function () {
+					console.log("failed to add options ticker");
+				}
+			});
+		}
+
+		function remove_options_ticker(sym) {
+			$.ajax({
+				type: 'DELETE',
+				url: 'screener/api/options/tickers',
+				contentType: 'application/json',
+				data: JSON.stringify({ ticker: sym }),
+				dataType: 'json',
+				success: function (data) {
+					g_options_tickers = data.tickers || [];
+					if (g_selected_ticker === sym) g_selected_ticker = null;
+					render_options_tickers();
+				},
+				error: function () {
+					console.log("failed to remove options ticker");
+				}
+			});
+		}
+
+		function handle_ticker_keypress(e) {
+			if (e.key === 'Enter') add_options_ticker();
+		}
 
 		/* ── Pill-menu toggle ── */
 		function toggleMenu(menuId) {
@@ -62,6 +171,163 @@
 				document.querySelectorAll('.pill-menu').forEach(function (m) { m.classList.remove('show'); });
 			}
 		});
+
+		/* ── Options: select ticker & load chart ── */
+		function select_options_ticker(sym) {
+			g_selected_ticker = sym;
+			$('.opt-ticker-item').removeClass('opt-ticker-selected');
+			$('.opt-ticker-item').each(function () {
+				if ($(this).find('.opt-ticker-sym').text() === sym) {
+					$(this).addClass('opt-ticker-selected');
+				}
+			});
+			load_ticker_chart(sym);
+		}
+
+		var TOP_COLORS = [
+			'#22c55e','#3b82f6','#f59e0b','#ef4444','#8b5cf6',
+			'#06b6d4','#ec4899','#f97316','#14b8a6','#a855f7'
+		];
+
+		function _chartRow(leftId, leftTitle, leftDot, rightId, rightTitle, rightDot, toggleKey) {
+			return '<div class="chart-row">' +
+				'<div class="card chart-card"><div class="card-head"><div class="card-title">' +
+				'<span class="dot dot-' + leftDot + '"></span>' + leftTitle + '</div></div>' +
+				'<div class="chart-wrap"><canvas id="' + leftId + '"></canvas></div></div>' +
+				'<div class="card chart-card"><div class="card-head"><div class="card-title">' +
+				'<span class="dot dot-' + rightDot + '"></span>' + rightTitle + '</div>' +
+				'<label class="cp-toggle"><span class="cp-label">Calls</span>' +
+				'<input type="checkbox" data-key="' + toggleKey + '" onchange="flip_top_chart(this)">' +
+				'<span class="cp-slider"></span></label>' +
+				'</div>' +
+				'<div class="chart-wrap"><canvas id="' + rightId + '"></canvas></div></div>' +
+				'</div>';
+		}
+
+		var g_top_data = null;
+
+		function load_ticker_chart(sym) {
+			$('#opt-chart-area').html(
+				_chartRow('chart-oi', sym + ' — Open Interest', 'cyan',
+				          'chart-oi-top', sym + ' — Top 10 OI by Strike', 'cyan', 'oi') +
+				_chartRow('chart-vol', sym + ' — Volume', 'green',
+				          'chart-vol-top', sym + ' — Top 10 Vol by Strike', 'green', 'vol') +
+				_chartRow('chart-prem', sym + ' — Total Premium', 'yellow',
+				          'chart-prem-top', sym + ' — Top 10 Prem by Strike', 'yellow', 'prem')
+			);
+			$.ajax({
+				type: 'GET',
+				url: 'screener/api/options/ticker/' + sym,
+				dataType: 'json',
+				success: function (d) {
+					if (!d || !d.dates) return;
+					render_options_charts(d);
+				},
+				error: function () { console.log("failed to load ticker data for " + sym); }
+			});
+		}
+
+		function formatNum(v) {
+			if (v == null) return '';
+			var abs = Math.abs(v);
+			if (abs >= 1e12) return (v / 1e12).toFixed(1) + 'T';
+			if (abs >= 1e9)  return (v / 1e9).toFixed(1) + 'B';
+			if (abs >= 1e6)  return (v / 1e6).toFixed(1) + 'M';
+			if (abs >= 1e3)  return (v / 1e3).toFixed(1) + 'K';
+			return v.toString();
+		}
+
+		var CHART_DEFAULTS = {
+			responsive: true, maintainAspectRatio: false, animation: { duration: 350 },
+			plugins: {
+				legend: { labels: { color: '#8b92a9', font: { family: "'Inter', sans-serif", size: 11 } } },
+				tooltip: { callbacks: { label: function(ctx) { return ctx.dataset.label + ': ' + formatNum(ctx.parsed.y); } } }
+			},
+			scales: {
+				x: { ticks: { color: '#4a5168', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
+				y: { ticks: { color: '#4a5168', font: { size: 10 }, callback: function(v) { return formatNum(v); } }, grid: { color: 'rgba(255,255,255,0.06)' } }
+			}
+		};
+
+		var CHART_TOP_DEFAULTS = {
+			responsive: true, maintainAspectRatio: false, animation: { duration: 350 },
+			plugins: {
+				legend: { position: 'bottom', labels: { color: '#8b92a9', boxWidth: 10, padding: 8,
+					font: { family: "'JetBrains Mono', monospace", size: 9 } } },
+				tooltip: { callbacks: { label: function(ctx) { return ctx.dataset.label + ': ' + formatNum(ctx.parsed.y); } } }
+			},
+			scales: {
+				x: { ticks: { color: '#4a5168', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
+				y: { ticks: { color: '#4a5168', font: { size: 10 }, callback: function(v) { return formatNum(v); } }, grid: { color: 'rgba(255,255,255,0.06)' } }
+			}
+		};
+
+		function _makeTopChart(canvasId, dates, series, field) {
+			var datasets = series.map(function (s, i) {
+				return {
+					label: s.label, data: s[field],
+					borderColor: TOP_COLORS[i % TOP_COLORS.length],
+					borderWidth: 1.5, tension: 0.3, pointRadius: 2, fill: false
+				};
+			});
+			return new Chart(document.getElementById(canvasId), {
+				type: 'line', data: { labels: dates, datasets: datasets },
+				options: CHART_TOP_DEFAULTS
+			});
+		}
+
+		function flip_top_chart(el) {
+			if (!g_top_data) return;
+			var key = el.getAttribute('data-key');
+			var side = el.checked ? 'puts' : 'calls';
+			$(el).closest('.cp-toggle').find('.cp-label').text(el.checked ? 'Puts' : 'Calls');
+			var chartKey = key + '_top';
+			if (g_options_charts[chartKey]) { g_options_charts[chartKey].destroy(); }
+			g_options_charts[chartKey] = _makeTopChart(
+				'chart-' + key + '-top', g_top_data.dates, g_top_data[side], key);
+		}
+
+		function render_options_charts(d) {
+			Object.values(g_options_charts).forEach(function (c) { c.destroy(); });
+			g_options_charts = {};
+
+			g_options_charts.oi = new Chart(document.getElementById('chart-oi'), {
+				type: 'line', data: {
+					labels: d.dates,
+					datasets: [
+						{ label: 'Call OI', data: d.call_oi, borderColor: '#22c55e', tension: 0.3, pointRadius: 3, fill: false },
+						{ label: 'Put OI', data: d.put_oi, borderColor: '#ef4444', tension: 0.3, pointRadius: 3, fill: false }
+					]
+				}, options: CHART_DEFAULTS
+			});
+
+			g_options_charts.vol = new Chart(document.getElementById('chart-vol'), {
+				type: 'line', data: {
+					labels: d.dates,
+					datasets: [
+						{ label: 'Call Vol', data: d.call_vol, borderColor: '#06b6d4', tension: 0.3, pointRadius: 3, fill: false },
+						{ label: 'Put Vol', data: d.put_vol, borderColor: '#f59e0b', tension: 0.3, pointRadius: 3, fill: false }
+					]
+				}, options: CHART_DEFAULTS
+			});
+
+			g_options_charts.prem = new Chart(document.getElementById('chart-prem'), {
+				type: 'line', data: {
+					labels: d.dates,
+					datasets: [
+						{ label: 'Call Premium ($)', data: d.call_prem, borderColor: '#22c55e', tension: 0.3, pointRadius: 3, fill: false },
+						{ label: 'Put Premium ($)', data: d.put_prem, borderColor: '#ef4444', tension: 0.3, pointRadius: 3, fill: false }
+					]
+				}, options: CHART_DEFAULTS
+			});
+
+			if (d.top) {
+				g_top_data = d.top;
+				g_options_charts.oi_top = _makeTopChart('chart-oi-top', d.top.dates, d.top.calls, 'oi');
+				g_options_charts.vol_top = _makeTopChart('chart-vol-top', d.top.dates, d.top.calls, 'vol');
+				g_options_charts.prem_top = _makeTopChart('chart-prem-top', d.top.dates, d.top.calls, 'prem');
+			}
+		}
 
 		/* ── Build screener card containers (first load only) ── */
 		function add_screener_tables(scrn_data) {
@@ -266,33 +532,70 @@
 		</div>
 	</nav>
 
-	<!-- ── Stat Bar ── -->
-	<div class="stat-bar">
-		<div class="stat-item">
-			<span class="stat-label">Total Signals</span>
-			<span class="stat-value sv-cyan" id="stat_total">—</span>
-		</div>
-		<div class="stat-item">
-			<span class="stat-label">New (30 min)</span>
-			<span class="stat-value sv-green" id="stat_30m">—</span>
-		</div>
-		<div class="stat-item">
-			<span class="stat-label">New (2 hr)</span>
-			<span class="stat-value sv-yellow" id="stat_2h">—</span>
-		</div>
-		<div class="stat-item">
-			<span class="stat-label">New (24 hr)</span>
-			<span class="stat-value" id="stat_24h">—</span>
-		</div>
-		<div class="stat-item">
-			<span class="stat-label">Last Updated</span>
-			<span class="stat-value" style="font-size:.78rem" id="stat_updated">—</span>
-		</div>
+	<!-- ── Tab Bar ── -->
+	<div class="tab-bar">
+		<button class="tab-btn active" id="tab-dashboard" onclick="switchTab('dashboard')">Dashboard</button>
+		<button class="tab-btn" id="tab-options" onclick="switchTab('options')">Options</button>
 	</div>
 
-	<!-- ── Page Body ── -->
-	<div class="page-body">
-		<div id="scrnTable" class="scrn-grid"></div>
+	<!-- ══════════ Dashboard Tab ══════════ -->
+	<div class="tab-panel active" id="panel-dashboard">
+
+		<!-- ── Stat Bar ── -->
+		<div class="stat-bar">
+			<div class="stat-item">
+				<span class="stat-label">Total Signals</span>
+				<span class="stat-value sv-cyan" id="stat_total">—</span>
+			</div>
+			<div class="stat-item">
+				<span class="stat-label">New (30 min)</span>
+				<span class="stat-value sv-green" id="stat_30m">—</span>
+			</div>
+			<div class="stat-item">
+				<span class="stat-label">New (2 hr)</span>
+				<span class="stat-value sv-yellow" id="stat_2h">—</span>
+			</div>
+			<div class="stat-item">
+				<span class="stat-label">New (24 hr)</span>
+				<span class="stat-value" id="stat_24h">—</span>
+			</div>
+			<div class="stat-item">
+				<span class="stat-label">Last Updated</span>
+				<span class="stat-value" style="font-size:.78rem" id="stat_updated">—</span>
+			</div>
+		</div>
+
+		<!-- ── Page Body ── -->
+		<div class="page-body">
+			<div id="scrnTable" class="scrn-grid"></div>
+		</div>
+
+	</div>
+
+	<!-- ══════════ Options Tab ══════════ -->
+	<div class="tab-panel" id="panel-options">
+		<div class="opt-layout">
+			<div class="opt-main" id="opt-chart-area">
+				<div class="options-placeholder">
+					<div class="placeholder-icon">&#x1F4C8;</div>
+					<p>Add tickers to view options flow charts.</p>
+				</div>
+			</div>
+			<div class="opt-sidebar">
+				<div class="opt-sidebar-head">
+					<span class="opt-sidebar-title">Watchlist</span>
+					<span class="chip" id="opt-ticker-count">0</span>
+				</div>
+				<div class="opt-ticker-add">
+					<input type="text" id="opt-ticker-input" class="opt-input"
+						placeholder="e.g. AAPL" onkeypress="handle_ticker_keypress(event)">
+					<button class="opt-add-btn" onclick="add_options_ticker()">+</button>
+				</div>
+				<div id="options-ticker-list" class="opt-ticker-list">
+					<div class="opt-ticker-empty">No tickers added yet</div>
+				</div>
+			</div>
+		</div>
 	</div>
 
 	<footer class="footer">© 2017-2026 Wolfinch Screener</footer>

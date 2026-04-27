@@ -26,6 +26,14 @@ dependencies = [
     "six>=1.16.0",
     # Brokers / market data
     "robin-stocks>=3.2.0",
+    # Required by wolfinch market/order_book
+    "bintrees>=2.2.0",
+    "sortedcontainers>=2.4.0",
+    # Required by wolfinch sims/genetic
+    "numpy>=1.26.0",
+    "deap>=1.4.0",
+    # Required by wolfinch notifiers/twitter
+    "tweepy>=4.14.0",
     # Required by yahoofin (wolfinch shared package)
     "websocket-client>=1.7.0",
 ]
