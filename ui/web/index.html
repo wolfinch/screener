@@ -227,22 +227,38 @@
 			});
 		}
 
+		function formatNum(v) {
+			if (v == null) return '';
+			var abs = Math.abs(v);
+			if (abs >= 1e12) return (v / 1e12).toFixed(1) + 'T';
+			if (abs >= 1e9)  return (v / 1e9).toFixed(1) + 'B';
+			if (abs >= 1e6)  return (v / 1e6).toFixed(1) + 'M';
+			if (abs >= 1e3)  return (v / 1e3).toFixed(1) + 'K';
+			return v.toString();
+		}
+
 		var CHART_DEFAULTS = {
 			responsive: true, maintainAspectRatio: false, animation: { duration: 350 },
-			plugins: { legend: { labels: { color: '#8b92a9', font: { family: "'Inter', sans-serif", size: 11 } } } },
+			plugins: {
+				legend: { labels: { color: '#8b92a9', font: { family: "'Inter', sans-serif", size: 11 } } },
+				tooltip: { callbacks: { label: function(ctx) { return ctx.dataset.label + ': ' + formatNum(ctx.parsed.y); } } }
+			},
 			scales: {
 				x: { ticks: { color: '#4a5168', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
-				y: { ticks: { color: '#4a5168', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.06)' } }
+				y: { ticks: { color: '#4a5168', font: { size: 10 }, callback: function(v) { return formatNum(v); } }, grid: { color: 'rgba(255,255,255,0.06)' } }
 			}
 		};
 
 		var CHART_TOP_DEFAULTS = {
 			responsive: true, maintainAspectRatio: false, animation: { duration: 350 },
-			plugins: { legend: { position: 'bottom', labels: { color: '#8b92a9', boxWidth: 10, padding: 8,
-				font: { family: "'JetBrains Mono', monospace", size: 9 } } } },
+			plugins: {
+				legend: { position: 'bottom', labels: { color: '#8b92a9', boxWidth: 10, padding: 8,
+					font: { family: "'JetBrains Mono', monospace", size: 9 } } },
+				tooltip: { callbacks: { label: function(ctx) { return ctx.dataset.label + ': ' + formatNum(ctx.parsed.y); } } }
+			},
 			scales: {
 				x: { ticks: { color: '#4a5168', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
-				y: { ticks: { color: '#4a5168', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.06)' } }
+				y: { ticks: { color: '#4a5168', font: { size: 10 }, callback: function(v) { return formatNum(v); } }, grid: { color: 'rgba(255,255,255,0.06)' } }
 			}
 		};
 
