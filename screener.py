@@ -77,6 +77,8 @@ def screener_init():
         ui.ui_init(port=8080, get_data_cb=get_screener_data, options_cb=options_cb)
         return
 
+    option_strats.init_options_db()
+
     #init data source
     tdata.init()
 

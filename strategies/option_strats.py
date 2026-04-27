@@ -168,6 +168,24 @@ def _gen_sim_ticker_history(sym, days=7):
 _history = {}
 _last_fetch = {}  # sym -> epoch of last fetch
 FETCH_INTERVAL = 12 * 3600  # refresh once every 12 hours
+_db = None  # OptionsDb instance, set by init_options_db()
+
+def init_options_db():
+    """Initialize options DB and restore history from previous runs."""
+    global _db, _history, _last_fetch
+    from db.options_db import OptionsDb
+    _db = OptionsDb()
+    _history = _db.load_all()
+    total = sum(len(v) for v in _history.values())
+    log.info("restored %d options snapshots for %d symbols from DB",
+             total, len(_history))
+    # Mark symbols that have today's snapshot as recently fetched
+    today_str = datetime.date.today().strftime("%Y-%m-%d")
+    now = int(datetime.datetime.now().timestamp())
+    for sym, snaps in _history.items():
+        if snaps and snaps[-1].get("date") == today_str:
+            _last_fetch[sym] = now
+            log.info("skipping re-fetch for %s (already have %s)", sym, today_str)
 
 def _parse_expiry(exp_str):
     """Parse expiry string like '260501' -> datetime.date(2026,5,1)"""
@@ -263,6 +281,8 @@ def _fetch_and_store(sym):
     _last_fetch[sym] = int(datetime.datetime.now().timestamp())
     log.info("fetched options data for %s: %d call strikes, %d put strikes",
              sym, len(call_strikes), len(put_strikes))
+    if _db:
+        _db.save_snapshot(sym, today_str, snap)
 
 def update_options_data():
     """Called from the main screener loop. Refreshes options data for all
