@@ -37,10 +37,10 @@ UI_CODES_FILE = "data/ui_codes.json"
 UI_TRADE_SECRET = None
 UI_PAGE_SECRET = None
 
-g_options_tickers = []
+g_options_cb = None
 
 def server_main (port=8080):
-    global g_options_tickers
+    global g_options_cb
         
     app = Flask(__name__, static_folder='web/', static_url_path='/web/')
     
@@ -84,35 +84,61 @@ def server_main (port=8080):
     @app.route('/screener/api/options/tickers', methods=['GET'])
     @app.route('/wolfinch/screener/api/options/tickers', methods=['GET'])
     def get_options_tickers_api():
-        return jsonify({"tickers": g_options_tickers})
+        if g_options_cb and g_options_cb.get('get_tickers'):
+            return jsonify({"tickers": g_options_cb['get_tickers']()})
+        return jsonify({"tickers": []})
 
     @app.route('/screener/api/options/tickers', methods=['POST'])
     @app.route('/wolfinch/screener/api/options/tickers', methods=['POST'])
     def add_options_ticker_api():
-        global g_options_tickers
         try:
             data = request.get_json()
             ticker = data.get('ticker', '').strip().upper()
-            if ticker and ticker not in g_options_tickers:
-                g_options_tickers.append(ticker)
+            if ticker and g_options_cb and g_options_cb.get('add_ticker'):
+                tickers = g_options_cb['add_ticker'](ticker)
                 log.debug("added options ticker: %s", ticker)
+                return jsonify({"tickers": tickers})
         except Exception as e:
             log.error("failed to add options ticker: %s", e)
-        return jsonify({"tickers": g_options_tickers})
+        return jsonify({"tickers": []})
 
     @app.route('/screener/api/options/tickers', methods=['DELETE'])
     @app.route('/wolfinch/screener/api/options/tickers', methods=['DELETE'])
     def remove_options_ticker_api():
-        global g_options_tickers
         try:
             data = request.get_json()
             ticker = data.get('ticker', '').strip().upper()
-            if ticker in g_options_tickers:
-                g_options_tickers.remove(ticker)
+            if ticker and g_options_cb and g_options_cb.get('remove_ticker'):
+                tickers = g_options_cb['remove_ticker'](ticker)
                 log.debug("removed options ticker: %s", ticker)
+                return jsonify({"tickers": tickers})
         except Exception as e:
             log.error("failed to remove options ticker: %s", e)
-        return jsonify({"tickers": g_options_tickers})
+        return jsonify({"tickers": []})
+
+    @app.route('/screener/api/options/data', methods=['GET'])
+    @app.route('/wolfinch/screener/api/options/data', methods=['GET'])
+    def get_options_data_api():
+        try:
+            log.debug("get options data")
+            if g_options_cb and g_options_cb.get('get_data'):
+                data = g_options_cb['get_data']()
+                return json.dumps(data)
+        except Exception as e:
+            log.error("Unable to get options data. Exception: %s", e)
+        return "{}"
+
+    @app.route('/screener/api/options/ticker/<sym>', methods=['GET'])
+    @app.route('/wolfinch/screener/api/options/ticker/<sym>', methods=['GET'])
+    def get_options_ticker_data_api(sym):
+        try:
+            log.debug("get options ticker data: %s", sym)
+            if g_options_cb and g_options_cb.get('get_ticker_data'):
+                data = g_options_cb['get_ticker_data'](sym)
+                return json.dumps(data)
+        except Exception as e:
+            log.error("Unable to get options ticker data. Exception: %s", e)
+        return "{}"
 
     log.debug("static_dir: %s root: %s" % (static_file_dir, app.root_path))
     
@@ -128,9 +154,10 @@ def ui_main (port=8080):
 
 g_get_data_cb = None
 g_ui_thread = None
-def ui_init(port=8080, get_data_cb=None):
-    global g_get_data_cb, g_ui_thread
+def ui_init(port=8080, get_data_cb=None, options_cb=None):
+    global g_get_data_cb, g_options_cb, g_ui_thread
     g_get_data_cb = get_data_cb
+    g_options_cb = options_cb
     g_ui_thread = threading.Thread(target=ui_main, args=(port,))
     g_ui_thread.daemon = True
     g_ui_thread.start()

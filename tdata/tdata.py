@@ -46,7 +46,7 @@ def init():
         YF = yf.Yahoofin ()
     if not RH:
         log.info("init robinhood exchange")
-        # init_rh()
+        init_rh()
 def init_rh():
     import robinhood
     global RH
@@ -74,8 +74,8 @@ def get_financial_data(sym):
     return YF.get_financial_data(sym, modules)
 def get_quotes(sym_list):
     return YF.get_quotes(sym_list)
-# def get_options(sym):
-    # return RH.get_option_chains(sym, None, None, None)
+def get_options(sym):
+    return RH.get_option_chains(sym, None, None, None)
 ######### ******** MAIN ****** #########
 if __name__ == '__main__':
     '''

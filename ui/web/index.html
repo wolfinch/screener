@@ -34,6 +34,7 @@
 	<script type="text/javascript" charset="utf8"
 		src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
 	<script src="https://momentjs.com/downloads/moment.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 
 	<script type="text/javascript">
 		/* ── Globals ── */
@@ -41,6 +42,8 @@
 		var g_total_signals = 0;
 		var g_new_30m = 0, g_new_2h = 0, g_new_24h = 0;
 		var g_options_tickers = [];
+		var g_selected_ticker = null;
+		var g_options_charts = {};
 
 		$(document).ready(function () {
 			load_screener_tables();
@@ -63,12 +66,8 @@
 			var btn = document.getElementById('tab-' + tabId);
 			if (btn) btn.classList.add('active');
 
-			var wlPill = document.getElementById('opt-watchlist-pill');
 			if (tabId === 'options') {
-				if (wlPill) wlPill.style.display = '';
 				load_options_tickers();
-			} else {
-				if (wlPill) wlPill.style.display = 'none';
 			}
 		}
 
@@ -93,17 +92,26 @@
 			list.empty();
 			$('#opt-ticker-count').text(g_options_tickers.length);
 			if (g_options_tickers.length === 0) {
+				g_selected_ticker = null;
+				$('#opt-chart-area').html(
+					'<div class="options-placeholder"><div class="placeholder-icon">&#x1F4C8;</div>' +
+					'<p>Add tickers to view options flow charts.</p></div>'
+				);
 				list.append('<div class="opt-ticker-empty">No tickers added yet</div>');
 				return;
 			}
 			g_options_tickers.forEach(function (t) {
+				var sel = (t === g_selected_ticker) ? ' opt-ticker-selected' : '';
 				list.append(
-					'<div class="opt-ticker-item">' +
+					'<div class="opt-ticker-item' + sel + '" onclick="select_options_ticker(\'' + t + '\')">' +
 					'<span class="opt-ticker-sym">' + t + '</span>' +
-					'<button class="opt-ticker-rm" onclick="remove_options_ticker(\'' + t + '\')">&#x2715;</button>' +
+					'<button class="opt-ticker-rm" onclick="event.stopPropagation(); remove_options_ticker(\'' + t + '\')">&#x2715;</button>' +
 					'</div>'
 				);
 			});
+			if (!g_selected_ticker || g_options_tickers.indexOf(g_selected_ticker) < 0) {
+				select_options_ticker(g_options_tickers[0]);
+			}
 		}
 
 		function add_options_ticker() {
@@ -119,6 +127,7 @@
 				success: function (data) {
 					input.value = '';
 					g_options_tickers = data.tickers || [];
+					if (!g_selected_ticker) g_selected_ticker = sym;
 					render_options_tickers();
 				},
 				error: function () {
@@ -136,6 +145,7 @@
 				dataType: 'json',
 				success: function (data) {
 					g_options_tickers = data.tickers || [];
+					if (g_selected_ticker === sym) g_selected_ticker = null;
 					render_options_tickers();
 				},
 				error: function () {
@@ -161,6 +171,147 @@
 				document.querySelectorAll('.pill-menu').forEach(function (m) { m.classList.remove('show'); });
 			}
 		});
+
+		/* ── Options: select ticker & load chart ── */
+		function select_options_ticker(sym) {
+			g_selected_ticker = sym;
+			$('.opt-ticker-item').removeClass('opt-ticker-selected');
+			$('.opt-ticker-item').each(function () {
+				if ($(this).find('.opt-ticker-sym').text() === sym) {
+					$(this).addClass('opt-ticker-selected');
+				}
+			});
+			load_ticker_chart(sym);
+		}
+
+		var TOP_COLORS = [
+			'#22c55e','#3b82f6','#f59e0b','#ef4444','#8b5cf6',
+			'#06b6d4','#ec4899','#f97316','#14b8a6','#a855f7'
+		];
+
+		function _chartRow(leftId, leftTitle, leftDot, rightId, rightTitle, rightDot, toggleKey) {
+			return '<div class="chart-row">' +
+				'<div class="card chart-card"><div class="card-head"><div class="card-title">' +
+				'<span class="dot dot-' + leftDot + '"></span>' + leftTitle + '</div></div>' +
+				'<div class="chart-wrap"><canvas id="' + leftId + '"></canvas></div></div>' +
+				'<div class="card chart-card"><div class="card-head"><div class="card-title">' +
+				'<span class="dot dot-' + rightDot + '"></span>' + rightTitle + '</div>' +
+				'<label class="cp-toggle"><span class="cp-label">Calls</span>' +
+				'<input type="checkbox" data-key="' + toggleKey + '" onchange="flip_top_chart(this)">' +
+				'<span class="cp-slider"></span></label>' +
+				'</div>' +
+				'<div class="chart-wrap"><canvas id="' + rightId + '"></canvas></div></div>' +
+				'</div>';
+		}
+
+		var g_top_data = null;
+
+		function load_ticker_chart(sym) {
+			$('#opt-chart-area').html(
+				_chartRow('chart-oi', sym + ' — Open Interest', 'cyan',
+				          'chart-oi-top', sym + ' — Top 10 OI by Strike', 'cyan', 'oi') +
+				_chartRow('chart-vol', sym + ' — Volume', 'green',
+				          'chart-vol-top', sym + ' — Top 10 Vol by Strike', 'green', 'vol') +
+				_chartRow('chart-prem', sym + ' — Total Premium', 'yellow',
+				          'chart-prem-top', sym + ' — Top 10 Prem by Strike', 'yellow', 'prem')
+			);
+			$.ajax({
+				type: 'GET',
+				url: 'screener/api/options/ticker/' + sym,
+				dataType: 'json',
+				success: function (d) {
+					if (!d || !d.dates) return;
+					render_options_charts(d);
+				},
+				error: function () { console.log("failed to load ticker data for " + sym); }
+			});
+		}
+
+		var CHART_DEFAULTS = {
+			responsive: true, maintainAspectRatio: false, animation: { duration: 350 },
+			plugins: { legend: { labels: { color: '#8b92a9', font: { family: "'Inter', sans-serif", size: 11 } } } },
+			scales: {
+				x: { ticks: { color: '#4a5168', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
+				y: { ticks: { color: '#4a5168', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.06)' } }
+			}
+		};
+
+		var CHART_TOP_DEFAULTS = {
+			responsive: true, maintainAspectRatio: false, animation: { duration: 350 },
+			plugins: { legend: { position: 'bottom', labels: { color: '#8b92a9', boxWidth: 10, padding: 8,
+				font: { family: "'JetBrains Mono', monospace", size: 9 } } } },
+			scales: {
+				x: { ticks: { color: '#4a5168', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
+				y: { ticks: { color: '#4a5168', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.06)' } }
+			}
+		};
+
+		function _makeTopChart(canvasId, dates, series, field) {
+			var datasets = series.map(function (s, i) {
+				return {
+					label: s.label, data: s[field],
+					borderColor: TOP_COLORS[i % TOP_COLORS.length],
+					borderWidth: 1.5, tension: 0.3, pointRadius: 2, fill: false
+				};
+			});
+			return new Chart(document.getElementById(canvasId), {
+				type: 'line', data: { labels: dates, datasets: datasets },
+				options: CHART_TOP_DEFAULTS
+			});
+		}
+
+		function flip_top_chart(el) {
+			if (!g_top_data) return;
+			var key = el.getAttribute('data-key');
+			var side = el.checked ? 'puts' : 'calls';
+			$(el).closest('.cp-toggle').find('.cp-label').text(el.checked ? 'Puts' : 'Calls');
+			var chartKey = key + '_top';
+			if (g_options_charts[chartKey]) { g_options_charts[chartKey].destroy(); }
+			g_options_charts[chartKey] = _makeTopChart(
+				'chart-' + key + '-top', g_top_data.dates, g_top_data[side], key);
+		}
+
+		function render_options_charts(d) {
+			Object.values(g_options_charts).forEach(function (c) { c.destroy(); });
+			g_options_charts = {};
+
+			g_options_charts.oi = new Chart(document.getElementById('chart-oi'), {
+				type: 'line', data: {
+					labels: d.dates,
+					datasets: [
+						{ label: 'Call OI', data: d.call_oi, borderColor: '#22c55e', tension: 0.3, pointRadius: 3, fill: false },
+						{ label: 'Put OI', data: d.put_oi, borderColor: '#ef4444', tension: 0.3, pointRadius: 3, fill: false }
+					]
+				}, options: CHART_DEFAULTS
+			});
+
+			g_options_charts.vol = new Chart(document.getElementById('chart-vol'), {
+				type: 'line', data: {
+					labels: d.dates,
+					datasets: [
+						{ label: 'Call Vol', data: d.call_vol, borderColor: '#06b6d4', tension: 0.3, pointRadius: 3, fill: false },
+						{ label: 'Put Vol', data: d.put_vol, borderColor: '#f59e0b', tension: 0.3, pointRadius: 3, fill: false }
+					]
+				}, options: CHART_DEFAULTS
+			});
+
+			g_options_charts.prem = new Chart(document.getElementById('chart-prem'), {
+				type: 'line', data: {
+					labels: d.dates,
+					datasets: [
+						{ label: 'Call Premium ($)', data: d.call_prem, borderColor: '#22c55e', tension: 0.3, pointRadius: 3, fill: false },
+						{ label: 'Put Premium ($)', data: d.put_prem, borderColor: '#ef4444', tension: 0.3, pointRadius: 3, fill: false }
+					]
+				}, options: CHART_DEFAULTS
+			});
+
+			if (d.top) {
+				g_top_data = d.top;
+				g_options_charts.oi_top = _makeTopChart('chart-oi-top', d.top.dates, d.top.calls, 'oi');
+				g_options_charts.vol_top = _makeTopChart('chart-vol-top', d.top.dates, d.top.calls, 'vol');
+				g_options_charts.prem_top = _makeTopChart('chart-prem-top', d.top.dates, d.top.calls, 'prem');
+			}
+		}
 
 		/* ── Build screener card containers (first load only) ── */
 		function add_screener_tables(scrn_data) {
@@ -369,23 +520,6 @@
 	<div class="tab-bar">
 		<button class="tab-btn active" id="tab-dashboard" onclick="switchTab('dashboard')">Dashboard</button>
 		<button class="tab-btn" id="tab-options" onclick="switchTab('options')">Options</button>
-		<div class="tab-bar-right">
-			<div class="pill-select" id="opt-watchlist-pill" style="display:none">
-				<div class="pill-btn" onclick="toggleMenu('opt-wl-menu')">
-					Watchlist <span class="chip chip-inline" id="opt-ticker-count">0</span> <span class="caret">▾</span>
-				</div>
-				<div class="pill-menu pill-menu-right" id="opt-wl-menu">
-					<div class="opt-ticker-add">
-						<input type="text" id="opt-ticker-input" class="opt-input"
-							placeholder="e.g. AAPL" onkeypress="handle_ticker_keypress(event)">
-						<button class="opt-add-btn" onclick="add_options_ticker()">Add</button>
-					</div>
-					<div id="options-ticker-list" class="opt-ticker-list">
-						<div class="opt-ticker-empty">No tickers added yet</div>
-					</div>
-				</div>
-			</div>
-		</div>
 	</div>
 
 	<!-- ══════════ Dashboard Tab ══════════ -->
@@ -424,18 +558,25 @@
 
 	<!-- ══════════ Options Tab ══════════ -->
 	<div class="tab-panel" id="panel-options">
-		<div class="page-body">
-			<div class="card">
-				<div class="card-head">
-					<div class="card-title">
-						<span class="dot dot-cyan"></span>
-						Options Analysis
-					</div>
-				</div>
+		<div class="opt-layout">
+			<div class="opt-main" id="opt-chart-area">
 				<div class="options-placeholder">
 					<div class="placeholder-icon">&#x1F4C8;</div>
-					<p>Add tickers from the Watchlist dropdown to start viewing options data.</p>
-					<p class="text-muted">Charts and analysis will appear here.</p>
+					<p>Add tickers to view options flow charts.</p>
+				</div>
+			</div>
+			<div class="opt-sidebar">
+				<div class="opt-sidebar-head">
+					<span class="opt-sidebar-title">Watchlist</span>
+					<span class="chip" id="opt-ticker-count">0</span>
+				</div>
+				<div class="opt-ticker-add">
+					<input type="text" id="opt-ticker-input" class="opt-input"
+						placeholder="e.g. AAPL" onkeypress="handle_ticker_keypress(event)">
+					<button class="opt-add-btn" onclick="add_options_ticker()">+</button>
+				</div>
+				<div id="options-ticker-list" class="opt-ticker-list">
+					<div class="opt-ticker-empty">No tickers added yet</div>
 				</div>
 			</div>
 		</div>

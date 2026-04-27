@@ -28,17 +28,22 @@ from decimal import getcontext
 import random
 import logging
 import gc
+import json
 
 # detect --sim early before heavy imports
 g_sim_mode = '--sim' in sys.argv
+g_options_only = '--options-only' in sys.argv
 
 if not g_sim_mode:
-    from strategies.screener_base import Tstats
-    from strategies import Configure
-    # import notifiers
+    if not g_options_only:
+        from strategies.screener_base import Tstats
+        from strategies import Configure
+        # import notifiers
+        from db import ScreenerDb, clear_db
+        from utils import getLogger, readConf
+    else:
+        from utils import getLogger
     import tdata
-    from utils import getLogger, readConf
-    from db import ScreenerDb, clear_db
     log = getLogger("Screener")
     log.setLevel(logging.ERROR)
     # mpl_logger = logging.getLogger('matplotlib')
@@ -56,19 +61,30 @@ ticker_import_time = 0
 # global Variables
 MAIN_TICK_DELAY = 1  # 500*4 milli
 
+from strategies import option_strats
+
 def screener_init():
     global ScreenerConfig
     # seed random
     random.seed()
 
+    option_strats.load_watchlist()
+    options_cb = option_strats.make_options_cb(sim_mode=g_sim_mode)
+
     if g_sim_mode:
         print("Running in SIMULATION mode with fake data")
         log.info("sim mode - skipping data init and screener registration")
-        ui.ui_init(port=8080, get_data_cb=get_screener_data)
+        ui.ui_init(port=8080, get_data_cb=get_screener_data, options_cb=options_cb)
         return
 
     #init data source
     tdata.init()
+
+    if g_options_only:
+        print("Running in OPTIONS-ONLY mode — main screeners disabled")
+        log.info("options-only mode - skipping screener registration")
+        ui.ui_init(port=8080, get_data_cb=get_screener_data, options_cb=options_cb)
+        return
 
     # print ("config: %s"%(ScreenerConfig))
     notifier = ScreenerConfig.get("notifier")
@@ -81,7 +97,7 @@ def screener_init():
     # setup ui if required
     if ScreenerConfig["ui"]["enabled"]:
         log.info("ui init")
-        if False == ui.ui_init(port=ScreenerConfig["ui"].get("port"), get_data_cb=get_screener_data) :
+        if False == ui.ui_init(port=ScreenerConfig["ui"].get("port"), get_data_cb=get_screener_data, options_cb=options_cb) :
             log.critical("unable to setup ui!! ")
             print("unable to setup UI!!")
             sys.exit(1)
@@ -110,8 +126,10 @@ def screener_main():
     while True:
         cur_time = time.time()
         try:
-            update_data()
-            process_screeners()
+            if not g_options_only:
+                update_data()
+                process_screeners()
+            option_strats.update_options_data()
         except Exception as e:
             log.critical("exception in main loop: %s" %(traceback.format_exc()))
             print("exception in main loop: %s" %(traceback.format_exc()), flush=True)
@@ -256,11 +274,16 @@ def arg_parse():
     parser.add_argument("--port", help='API Port')
     parser.add_argument("--restart", help='restart from the previous state', action='store_true')
     parser.add_argument("--sim", help='Run in simulation mode with fake data (no config needed)', action='store_true')
+    parser.add_argument("--options-only", help='Run options UI only, skip main dashboard screeners (no config needed)', action='store_true')
 
     args = parser.parse_args()
 
     if args.sim:
         log.info("sim mode enabled")
+        return
+
+    if args.options_only:
+        log.info("options-only mode enabled")
         return
     
     if args.config:

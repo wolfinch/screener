@@ -604,6 +604,112 @@ table.dataTable tbody tr:hover td {
 }
 
 /* ── Options Tab ───────────────────────────── */
+.opt-layout {
+	display: flex;
+	flex: 1;
+	min-height: 0;
+}
+
+.opt-main {
+	flex: 1;
+	padding: .9rem 1.4rem 2rem;
+	overflow-y: auto;
+	min-width: 0;
+}
+
+.opt-sidebar {
+	width: 220px;
+	flex-shrink: 0;
+	background: var(--bg-nav);
+	border-left: 1px solid var(--border);
+	padding: .75rem;
+	display: flex;
+	flex-direction: column;
+	gap: .55rem;
+	overflow-y: auto;
+}
+
+.opt-sidebar-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.opt-sidebar-title {
+	font-size: .7rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: .08em;
+	color: var(--text-sec);
+}
+
+.opt-ticker-selected {
+	border-color: var(--accent) !important;
+	background: var(--accent-dim) !important;
+}
+
+.opt-ticker-selected .opt-ticker-sym {
+	color: var(--accent);
+}
+
+.chart-row {
+	display: flex;
+	gap: .85rem;
+	margin-bottom: .85rem;
+}
+
+.chart-card {
+	flex: 1;
+	min-width: 0;
+	margin-bottom: 0 !important;
+}
+
+.chart-wrap {
+	position: relative;
+	height: 220px;
+}
+
+/* Call / Put toggle switch */
+.cp-toggle {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	cursor: pointer;
+	font-size: .65rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: .06em;
+	gap: 0;
+	user-select: none;
+	margin-left: auto;
+}
+.cp-toggle input { display: none; }
+.cp-slider {
+	width: 34px; height: 16px;
+	background: #22c55e;
+	border-radius: 8px;
+	position: relative;
+	transition: background .25s;
+	margin: 0 6px;
+}
+.cp-slider::after {
+	content: '';
+	position: absolute;
+	width: 12px; height: 12px;
+	background: #fff;
+	border-radius: 50%;
+	top: 2px; left: 2px;
+	transition: transform .25s;
+}
+.cp-toggle input:checked ~ .cp-slider {
+	background: #ef4444;
+}
+.cp-toggle input:checked ~ .cp-slider::after {
+	transform: translateX(18px);
+}
+.cp-label { color: #22c55e; transition: color .25s; }
+.cp-toggle:has(input:checked) .cp-label { color: #ef4444; }
+
 .options-placeholder {
 	display: flex;
 	flex-direction: column;
@@ -691,6 +797,7 @@ table.dataTable tbody tr:hover td {
 	border: 1px solid var(--border-faint);
 	border-radius: var(--r-xs);
 	transition: all var(--t);
+	cursor: pointer;
 }
 
 .opt-ticker-item:hover {
