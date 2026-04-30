@@ -18,9 +18,7 @@
 #  along with Wolfinch.  If not, see <https://www.gnu.org/licenses/>.
 
 # from decimal import Decimal
-from tkinter import E, N
 import traceback
-from sqlalchemy import true
 from .screener_base import Screener
 import tdata
 import time
