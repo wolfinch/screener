@@ -478,9 +478,8 @@
 				pageLength: 25,
 				columns: columns,
 				order: [[sort_idx, "desc"]],
-				responsive: true,
+				scrollX: true,
 				scrollY: '35vh',
-				fixedColumns: { heightMatch: 'none' },
 				"rowCallback": function (nRow, aData) {
 					var now_s = Date.now() / 1000;
 
