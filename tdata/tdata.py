@@ -76,6 +76,10 @@ def get_quotes(sym_list):
     return YF.get_quotes(sym_list)
 def get_options(sym):
     return RH.get_option_chains(sym, None, None, None)
+def ensure_session():
+    """Proactively refresh RH OAuth token before it expires (no 2FA)."""
+    if RH:
+        RH.ensure_session()
 ######### ******** MAIN ****** #########
 if __name__ == '__main__':
     '''

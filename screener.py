@@ -128,6 +128,7 @@ def screener_main():
     while True:
         cur_time = time.time()
         try:
+            tdata.ensure_session()
             if not g_options_only:
                 update_data()
                 process_screeners()
