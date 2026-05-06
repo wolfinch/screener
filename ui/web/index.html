@@ -162,26 +162,26 @@
 			var btn = document.getElementById('opt-refresh-btn');
 			btn.disabled = true;
 			btn.classList.add('opt-refreshing');
-			btn.innerHTML = '&#x21BB; Refreshing…';
 			$.ajax({
 				type: 'POST',
 				url: 'screener/api/options/refresh',
 				contentType: 'application/json',
 				dataType: 'json',
 				success: function (data) {
-					console.log("refresh done", data);
-					btn.disabled = false;
-					btn.classList.remove('opt-refreshing');
-					btn.innerHTML = '&#x21BB; Refresh';
-					if (g_selected_ticker) {
-						load_ticker_chart(g_selected_ticker);
-					}
+					console.log("refresh queued", data);
+					var n = (data.refreshed || []).length;
+					setTimeout(function () {
+						btn.disabled = false;
+						btn.classList.remove('opt-refreshing');
+						if (g_selected_ticker) {
+							load_ticker_chart(g_selected_ticker);
+						}
+					}, n * 2000 + 500);
 				},
 				error: function () {
 					console.log("refresh failed");
 					btn.disabled = false;
 					btn.classList.remove('opt-refreshing');
-					btn.innerHTML = '&#x21BB; Refresh';
 				}
 			});
 		}
@@ -612,7 +612,7 @@
 				<div class="opt-sidebar-head">
 					<span class="opt-sidebar-title">Watchlist</span>
 					<span class="chip" id="opt-ticker-count">0</span>
-					<button class="opt-refresh-btn" id="opt-refresh-btn" onclick="refresh_options_data()" title="Refresh all watchlist tickers">&#x21BB; Refresh</button>
+					<button class="opt-refresh-btn" id="opt-refresh-btn" onclick="refresh_options_data()" title="Refresh all watchlist tickers">&#x21BB;</button>
 				</div>
 				<div class="opt-ticker-add">
 					<input type="text" id="opt-ticker-input" class="opt-input"

@@ -366,17 +366,13 @@ def get_screener_data(sim_mode=False):
     return result
 
 def refresh_all(sim_mode=False):
-    """Force-refresh options data for all watchlist tickers, bypassing FETCH_INTERVAL."""
-    refreshed = []
-    for sym in list(_tickers):
-        if sim_mode:
-            refreshed.append(sym)
-        else:
-            _last_fetch.pop(sym, None)
-            _fetch_and_store(sym)
-            refreshed.append(sym)
-    log.info("force-refreshed options data for %d tickers: %s", len(refreshed), refreshed)
-    return refreshed
+    """Queue refresh for all watchlist tickers by clearing their _last_fetch timestamps.
+    The next periodic update_options_data() call will pick them up (within ~1s)."""
+    queued = list(_tickers)
+    for sym in queued:
+        _last_fetch.pop(sym, None)
+    log.info("queued refresh for %d tickers: %s", len(queued), queued)
+    return queued
 
 def make_options_cb(sim_mode=False):
     return {
