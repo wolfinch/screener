@@ -847,6 +847,28 @@ table.dataTable tbody tr:hover td {
 	font-size: .78rem;
 	font-weight: 600;
 	color: var(--text);
+	flex-shrink: 0;
+}
+
+.opt-quote {
+	display: flex;
+	align-items: baseline;
+	gap: .3rem;
+	margin-left: auto;
+	margin-right: .4rem;
+	font-family: var(--mono);
+	font-size: .68rem;
+}
+.opt-quote-price {
+	color: var(--text-sec);
+}
+.opt-quote-up {
+	color: var(--green, #22c55e);
+	font-weight: 600;
+}
+.opt-quote-down {
+	color: var(--red, #ef4444);
+	font-weight: 600;
 }
 
 .opt-ticker-rm {

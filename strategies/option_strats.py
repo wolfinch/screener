@@ -343,6 +343,48 @@ def _build_ticker_response(sym):
     }
     return result
 
+# ── Ticker quotes (price + %change) ───────────────────
+_quotes_cache = {}      # sym -> {"price": ..., "change_pct": ...}
+_quotes_cache_time = 0  # epoch of last batch fetch
+QUOTES_CACHE_TTL = 60   # refresh quotes at most once per 60s
+
+def get_ticker_quotes(sim_mode=False):
+    """Return {sym: {price, change_pct}} for all watchlist tickers."""
+    global _quotes_cache, _quotes_cache_time
+    tickers = list(_tickers)
+    if not tickers:
+        return {}
+    if sim_mode:
+        rng = random.Random(42)
+        out = {}
+        for sym in tickers:
+            price = SIM_PRICES.get(sym, round(rng.uniform(10, 300), 2))
+            pct = round(rng.uniform(-5, 5), 2)
+            out[sym] = {"price": price, "change_pct": pct}
+        return out
+    now = int(datetime.datetime.now().timestamp())
+    if now - _quotes_cache_time < QUOTES_CACHE_TTL and _quotes_cache:
+        return _quotes_cache
+    try:
+        import tdata
+        quotes, err = tdata.get_quotes(tickers)
+        if err or not quotes:
+            log.error("failed to fetch quotes: %s", err)
+            return _quotes_cache
+        result = {}
+        for q in quotes:
+            sym = q.get("symbol", "")
+            result[sym] = {
+                "price": round(q.get("regularMarketPrice", 0), 2),
+                "change_pct": round(q.get("regularMarketChangePercent", 0), 2),
+            }
+        _quotes_cache = result
+        _quotes_cache_time = now
+        log.info("refreshed quotes for %d tickers", len(result))
+    except Exception as e:
+        log.error("exception fetching quotes: %s", e)
+    return _quotes_cache
+
 # ── Public data accessors ─────────────────────────────
 def get_ticker_data(sym, sim_mode=False):
     sym = sym.strip().upper()
@@ -382,6 +424,7 @@ def make_options_cb(sim_mode=False):
         'get_data': lambda: get_screener_data(sim_mode),
         'get_ticker_data': lambda sym: get_ticker_data(sym, sim_mode),
         'refresh_all': lambda: refresh_all(sim_mode),
+        'get_quotes': lambda: get_ticker_quotes(sim_mode),
     }
 
 # EOF

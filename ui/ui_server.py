@@ -84,9 +84,14 @@ def server_main (port=8080):
     @app.route('/screener/api/options/tickers', methods=['GET'])
     @app.route('/wolfinch/screener/api/options/tickers', methods=['GET'])
     def get_options_tickers_api():
-        if g_options_cb and g_options_cb.get('get_tickers'):
-            return jsonify({"tickers": g_options_cb['get_tickers']()})
-        return jsonify({"tickers": []})
+        tickers = []
+        quotes = {}
+        if g_options_cb:
+            if g_options_cb.get('get_tickers'):
+                tickers = g_options_cb['get_tickers']()
+            if g_options_cb.get('get_quotes'):
+                quotes = g_options_cb['get_quotes']()
+        return jsonify({"tickers": tickers, "quotes": quotes})
 
     @app.route('/screener/api/options/tickers', methods=['POST'])
     @app.route('/wolfinch/screener/api/options/tickers', methods=['POST'])

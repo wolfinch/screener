@@ -42,6 +42,7 @@
 		var g_total_signals = 0;
 		var g_new_30m = 0, g_new_2h = 0, g_new_24h = 0;
 		var g_options_tickers = [];
+		var g_options_quotes = {};
 		var g_selected_ticker = null;
 		var g_options_charts = {};
 
@@ -79,6 +80,7 @@
 				dataType: 'json',
 				success: function (data) {
 					g_options_tickers = data.tickers || [];
+					g_options_quotes = data.quotes || {};
 					render_options_tickers();
 				},
 				error: function () {
@@ -102,9 +104,21 @@
 			}
 			g_options_tickers.forEach(function (t) {
 				var sel = (t === g_selected_ticker) ? ' opt-ticker-selected' : '';
+				var q = g_options_quotes[t];
+				var quoteHtml = '';
+				if (q) {
+					var pct = q.change_pct || 0;
+					var cls = pct >= 0 ? 'opt-quote-up' : 'opt-quote-down';
+					var sign = pct >= 0 ? '+' : '';
+					quoteHtml = '<span class="opt-quote">' +
+						'<span class="opt-quote-price">' + q.price + '</span>' +
+						'<span class="' + cls + '">' + sign + pct.toFixed(2) + '%</span>' +
+						'</span>';
+				}
 				list.append(
-					'<div class="opt-ticker-item' + sel + '" onclick="select_options_ticker(\'' + t + '\')">' +
+					'<div class="opt-ticker-item' + sel + '" onclick="select_options_ticker(\'' + t + '\')">'+
 					'<span class="opt-ticker-sym">' + t + '</span>' +
+					quoteHtml +
 					'<button class="opt-ticker-rm" onclick="event.stopPropagation(); remove_options_ticker(\'' + t + '\')">&#x2715;</button>' +
 					'</div>'
 				);
