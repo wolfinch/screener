@@ -632,7 +632,38 @@ table.dataTable tbody tr:hover td {
 .opt-sidebar-head {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
+	gap: .4rem;
+}
+
+.opt-refresh-btn {
+	margin-left: auto;
+	padding: .22rem .55rem;
+	font-size: .62rem;
+	font-weight: 600;
+	font-family: var(--sans);
+	color: var(--text-sec);
+	background: var(--card);
+	border: 1px solid var(--border);
+	border-radius: 6px;
+	cursor: pointer;
+	transition: background .15s, color .15s, border-color .15s;
+	white-space: nowrap;
+}
+.opt-refresh-btn:hover {
+	background: var(--accent-dim);
+	color: var(--accent);
+	border-color: var(--accent);
+}
+.opt-refresh-btn:disabled {
+	cursor: not-allowed;
+	opacity: .6;
+}
+.opt-refreshing {
+	animation: spin-icon .8s linear infinite;
+}
+@keyframes spin-icon {
+	from { transform: rotate(0deg); }
+	to   { transform: rotate(360deg); }
 }
 
 .opt-sidebar-title {

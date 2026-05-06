@@ -158,6 +158,34 @@
 			if (e.key === 'Enter') add_options_ticker();
 		}
 
+		function refresh_options_data() {
+			var btn = document.getElementById('opt-refresh-btn');
+			btn.disabled = true;
+			btn.classList.add('opt-refreshing');
+			btn.innerHTML = '&#x21BB; Refreshing…';
+			$.ajax({
+				type: 'POST',
+				url: 'screener/api/options/refresh',
+				contentType: 'application/json',
+				dataType: 'json',
+				success: function (data) {
+					console.log("refresh done", data);
+					btn.disabled = false;
+					btn.classList.remove('opt-refreshing');
+					btn.innerHTML = '&#x21BB; Refresh';
+					if (g_selected_ticker) {
+						load_ticker_chart(g_selected_ticker);
+					}
+				},
+				error: function () {
+					console.log("refresh failed");
+					btn.disabled = false;
+					btn.classList.remove('opt-refreshing');
+					btn.innerHTML = '&#x21BB; Refresh';
+				}
+			});
+		}
+
 		/* ── Pill-menu toggle ── */
 		function toggleMenu(menuId) {
 			document.querySelectorAll('.pill-menu').forEach(function (m) {
@@ -584,6 +612,7 @@
 				<div class="opt-sidebar-head">
 					<span class="opt-sidebar-title">Watchlist</span>
 					<span class="chip" id="opt-ticker-count">0</span>
+					<button class="opt-refresh-btn" id="opt-refresh-btn" onclick="refresh_options_data()" title="Refresh all watchlist tickers">&#x21BB; Refresh</button>
 				</div>
 				<div class="opt-ticker-add">
 					<input type="text" id="opt-ticker-input" class="opt-input"

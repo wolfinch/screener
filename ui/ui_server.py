@@ -116,6 +116,18 @@ def server_main (port=8080):
             log.error("failed to remove options ticker: %s", e)
         return jsonify({"tickers": []})
 
+    @app.route('/screener/api/options/refresh', methods=['POST'])
+    @app.route('/wolfinch/screener/api/options/refresh', methods=['POST'])
+    def refresh_options_api():
+        try:
+            log.debug("refresh options data requested")
+            if g_options_cb and g_options_cb.get('refresh_all'):
+                refreshed = g_options_cb['refresh_all']()
+                return jsonify({"status": "ok", "refreshed": refreshed})
+        except Exception as e:
+            log.error("failed to refresh options data: %s", e)
+        return jsonify({"status": "error", "refreshed": []})
+
     @app.route('/screener/api/options/data', methods=['GET'])
     @app.route('/wolfinch/screener/api/options/data', methods=['GET'])
     def get_options_data_api():

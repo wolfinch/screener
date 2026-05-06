@@ -365,6 +365,19 @@ def get_screener_data(sim_mode=False):
         result[sym] = _build_ticker_response(sym)
     return result
 
+def refresh_all(sim_mode=False):
+    """Force-refresh options data for all watchlist tickers, bypassing FETCH_INTERVAL."""
+    refreshed = []
+    for sym in list(_tickers):
+        if sim_mode:
+            refreshed.append(sym)
+        else:
+            _last_fetch.pop(sym, None)
+            _fetch_and_store(sym)
+            refreshed.append(sym)
+    log.info("force-refreshed options data for %d tickers: %s", len(refreshed), refreshed)
+    return refreshed
+
 def make_options_cb(sim_mode=False):
     return {
         'get_tickers': get_tickers,
@@ -372,6 +385,7 @@ def make_options_cb(sim_mode=False):
         'remove_ticker': remove_ticker,
         'get_data': lambda: get_screener_data(sim_mode),
         'get_ticker_data': lambda sym: get_ticker_data(sym, sim_mode),
+        'refresh_all': lambda: refresh_all(sim_mode),
     }
 
 # EOF
