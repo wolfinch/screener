@@ -35,6 +35,8 @@
 		src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.js"></script>
 	<script src="https://momentjs.com/downloads/moment.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
 
 	<script type="text/javascript">
 		/* ── Globals ── */
@@ -45,6 +47,45 @@
 		var g_options_quotes = {};
 		var g_selected_ticker = null;
 		var g_options_charts = {};
+		var g_full_ticker_data = null;
+		var g_chart_period = 'max';
+
+
+		function sliceByPeriod(d) {
+			if (!d || !d.dates || g_chart_period === 'max') return d;
+			var n = d.dates.length;
+			var keep = (g_chart_period === '1w') ? 7 : 30;
+			if (n <= keep) return d;
+			var s = n - keep;
+			var out = {
+				dates: d.dates.slice(s),
+				call_oi: d.call_oi.slice(s), put_oi: d.put_oi.slice(s),
+				call_vol: d.call_vol.slice(s), put_vol: d.put_vol.slice(s),
+				call_prem: d.call_prem.slice(s), put_prem: d.put_prem.slice(s)
+			};
+			if (d.top) {
+				out.top = {
+					dates: d.top.dates.slice(s),
+					calls: d.top.calls.map(function(c) {
+						return {label: c.label, oi: c.oi.slice(s), vol: c.vol.slice(s), prem: c.prem.slice(s)};
+					}),
+					puts: d.top.puts.map(function(p) {
+						return {label: p.label, oi: p.oi.slice(s), vol: p.vol.slice(s), prem: p.prem.slice(s)};
+					})
+				};
+			}
+			return out;
+		}
+
+		function setPeriod(p) {
+			g_chart_period = p;
+			document.querySelectorAll('.period-btn').forEach(function(b) {
+				b.classList.toggle('period-active', b.getAttribute('data-period') === p);
+			});
+			if (g_full_ticker_data) {
+				render_options_charts(sliceByPeriod(g_full_ticker_data));
+			}
+		}
 
 		$(document).ready(function () {
 			load_screener_tables();
@@ -250,6 +291,11 @@
 
 		function load_ticker_chart(sym) {
 			$('#opt-chart-area').html(
+				'<div class="period-bar">' +
+				'<button class="period-btn' + (g_chart_period==='1w'?' period-active':'') + '" data-period="1w" onclick="setPeriod(\'1w\')">1W</button>' +
+				'<button class="period-btn' + (g_chart_period==='1m'?' period-active':'') + '" data-period="1m" onclick="setPeriod(\'1m\')">1M</button>' +
+				'<button class="period-btn' + (g_chart_period==='max'?' period-active':'') + '" data-period="max" onclick="setPeriod(\'max\')">Max</button>' +
+				'</div>' +
 				_chartRow('chart-oi', sym + ' — Open Interest', 'cyan',
 				          'chart-oi-top', sym + ' — Top 10 OI by Strike', 'cyan', 'oi') +
 				_chartRow('chart-vol', sym + ' — Volume', 'green',
@@ -263,7 +309,8 @@
 				dataType: 'json',
 				success: function (d) {
 					if (!d || !d.dates) return;
-					render_options_charts(d);
+					g_full_ticker_data = d;
+					render_options_charts(sliceByPeriod(d));
 				},
 				error: function () { console.log("failed to load ticker data for " + sym); }
 			});
@@ -279,11 +326,25 @@
 			return v.toString();
 		}
 
+		var ZOOM_PAN_CFG = {
+			zoom: {
+				wheel: { enabled: true, speed: 0.04 },
+				pinch: { enabled: true },
+				mode: 'x'
+			},
+			pan: {
+				enabled: true,
+				mode: 'x'
+			},
+			limits: { x: { minRange: 2 } }
+		};
+
 		var CHART_DEFAULTS = {
 			responsive: true, maintainAspectRatio: false, animation: { duration: 350 },
 			plugins: {
 				legend: { labels: { color: '#8b92a9', font: { family: "'Inter', sans-serif", size: 11 } } },
-				tooltip: { callbacks: { label: function(ctx) { return ctx.dataset.label + ': ' + formatNum(ctx.parsed.y); } } }
+				tooltip: { callbacks: { label: function(ctx) { return ctx.dataset.label + ': ' + formatNum(ctx.parsed.y); } } },
+				zoom: ZOOM_PAN_CFG
 			},
 			scales: {
 				x: { ticks: { color: '#4a5168', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
@@ -296,7 +357,8 @@
 			plugins: {
 				legend: { position: 'bottom', labels: { color: '#8b92a9', boxWidth: 10, padding: 8,
 					font: { family: "'JetBrains Mono', monospace", size: 9 } } },
-				tooltip: { callbacks: { label: function(ctx) { return ctx.dataset.label + ': ' + formatNum(ctx.parsed.y); } } }
+				tooltip: { callbacks: { label: function(ctx) { return ctx.dataset.label + ': ' + formatNum(ctx.parsed.y); } } },
+				zoom: ZOOM_PAN_CFG
 			},
 			scales: {
 				x: { ticks: { color: '#4a5168', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
@@ -388,12 +450,16 @@
 					th += '<th>0</th>';
 				}
 
-				var card_html = `
+				var tipText = scrn_data[scrn_name]["description"] || '';
+			var tipSpan = tipText ? '<span class="strat-tip-text">' + tipText + '</span>' : '';
+
+			var card_html = `
         <div class="card">
           <div class="card-head">
-            <div class="card-title">
+            <div class="card-title${tipText ? ' strat-tip' : ''}">
               <span class="dot"></span>
               ${scrn_name}
+              ${tipSpan}
             </div>
             <span class="chip" id="chip_${scrn_name}">—</span>
           </div>

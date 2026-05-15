@@ -31,6 +31,7 @@ log = getLogger("VOL_SPIKE")
 log.setLevel(log.DEBUG)
 
 class VOL_SPIKE(Screener):
+    DESCRIPTION = "Flags tickers whose current volume exceeds a configurable multiple of their 10-day average daily volume"
     def __init__(self, name="VOL_SPIKE", ticker_kind="ALL", interval=300, vol_multiplier=2, notify=None, **kwarg):
         log.info ("init: name: %s ticker_kind: %s interval: %d vol_multiplier: %d"%(name, ticker_kind, interval, vol_multiplier))
         super().__init__(name, ticker_kind, interval)
@@ -105,7 +106,7 @@ class VOL_SPIKE(Screener):
 #              ]
         fmt = {"symbol": "symbol", "last_price": "last price", 
                "price_change": "% price", "cur_price_change": "% cur price", "vol_change": "% vol", "cur_vol_change": "% cur vol", "time": "time"}
-        return {"format":fmt, "data": list(self.filtered_list.values()), "sort": "time"}
+        return {"format":fmt, "data": list(self.filtered_list.values()), "sort": "time", "description": self.DESCRIPTION}
 
     def _get_all_tickers_info(self, sym_list, ticker_stats):
         BATCH_SIZE = 400

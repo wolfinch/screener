@@ -373,6 +373,39 @@ a:hover {
 	gap: .38rem;
 }
 
+.strat-tip {
+	cursor: help;
+	position: relative;
+	z-index: 100;
+	border-bottom: 1px dashed var(--text-muted);
+}
+.strat-tip-text {
+	display: none;
+	position: absolute;
+	left: 0;
+	top: 100%;
+	margin-top: 6px;
+	padding: .45rem .7rem;
+	max-width: 320px;
+	width: max-content;
+	font-size: .68rem;
+	font-weight: 400;
+	letter-spacing: normal;
+	text-transform: none;
+	line-height: 1.45;
+	color: var(--text);
+	background: var(--bg-card);
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	box-shadow: 0 4px 16px rgba(0,0,0,.35);
+	z-index: 1000;
+	pointer-events: none;
+	white-space: normal;
+}
+.strat-tip:hover .strat-tip-text {
+	display: block;
+}
+
 .card-title .dot {
 	width: 6px;
 	height: 6px;
@@ -503,10 +536,13 @@ table.dataTable thead th {
 	white-space: nowrap;
 }
 
-table.dataTable thead th.sorting,
+table.dataTable thead th.sorting {
+	background: rgba(255, 255, 255, .03) !important;
+}
 table.dataTable thead th.sorting_asc,
 table.dataTable thead th.sorting_desc {
 	background: rgba(255, 255, 255, .03) !important;
+	color: var(--accent) !important;
 }
 
 table.dataTable tbody td {
@@ -687,6 +723,37 @@ table.dataTable tbody tr:hover td {
 
 .opt-ticker-selected .opt-ticker-sym {
 	color: var(--accent);
+}
+
+/* Period selector bar */
+.period-bar {
+	display: flex;
+	justify-content: flex-end;
+	gap: .3rem;
+	margin-bottom: .65rem;
+}
+.period-btn {
+	padding: .22rem .6rem;
+	font-size: .62rem;
+	font-weight: 600;
+	font-family: var(--sans);
+	text-transform: uppercase;
+	letter-spacing: .05em;
+	color: var(--text-muted);
+	background: var(--bg-glass);
+	border: 1px solid var(--border-faint);
+	border-radius: 6px;
+	cursor: pointer;
+	transition: all .15s;
+}
+.period-btn:hover {
+	color: var(--text-sec);
+	border-color: var(--border);
+}
+.period-active {
+	background: var(--accent-dim);
+	color: var(--accent);
+	border-color: var(--accent);
 }
 
 .chart-row {

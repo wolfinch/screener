@@ -31,6 +31,7 @@ log = getLogger("FIN_DATA")
 log.setLevel(log.DEBUG)
 
 class FIN_DATA(Screener):
+    DESCRIPTION = "Collects fundamental financial data (balance sheet, earnings, key stats) for all tickers"
     def __init__(self, name="FIN_DATA", ticker_kind="ALL", interval=24*60*60, **kwarg):
         log.info ("init: name: %s ticker_kind: %s interval: %d"%(name, ticker_kind, interval))
         super().__init__(name, ticker_kind, interval)

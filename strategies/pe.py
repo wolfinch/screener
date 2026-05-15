@@ -32,6 +32,7 @@ log = getLogger("PE")
 log.setLevel(log.DEBUG)
 
 class PE(Screener):
+    DESCRIPTION = "Ranks stocks by price-to-earnings ratio (low to high), surfaces potentially undervalued names"
     def __init__(self, name="PE", ticker_kind="ALL", interval=24*60*60, multiplier=1, data="", notify=None, **kwarg):
         log.info ("init: name: %s ticker_kind: %s interval: %d multiplier: %d data_src_name: %s"%(name, ticker_kind, interval, multiplier, data))
         super().__init__(name, ticker_kind, interval)
@@ -170,6 +171,6 @@ class PE(Screener):
 #              ]
         fmt = {"symbol": "Symbol","cur_mcap": "Market Cap",
          "total_cash": "Total Cash", "tcash_pct": "Cash %", "price": "Price", "ftwh": "High", "ftwl": "Low", "ptb": "Price2Book",  "time": "Time" }
-        return {"format":fmt, "data":list(self.filtered_list.values()), "sort": "ptb", "hidden": ["time"]}
+        return {"format":fmt, "data":list(self.filtered_list.values()), "sort": "ptb", "hidden": ["time"], "description": self.DESCRIPTION}
 
 #EOF

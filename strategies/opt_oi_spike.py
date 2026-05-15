@@ -35,6 +35,7 @@ OI_MAX_DAYS = 180 #~6 months
 
 # track change in OI from one screen to another. also track put/call spread. 
 class OPT_OI_SPIKE(Screener):
+    DESCRIPTION = "Detects unusual changes in options open interest across strikes — signals large positional shifts"
     def __init__(self, name="OPT_OI_SPIKE", ticker_kind="ALL", interval=24*60*60, multiplier=1, options_data="", ticker_data="", notify=None, **kwarg):
         log.info("init: name: %s ticker_kind: %s interval: %d multiplier: %d data_src_name: %s" % (
             name, ticker_kind, interval, multiplier, options_data))
@@ -232,6 +233,6 @@ class OPT_OI_SPIKE(Screener):
     def get_screened(self):
         fmt = {"symbol": "Symbol", "time": "Time", "num_oi": "∆OI", "num_oi_d": "C/P", "calls_puts_d": "∆C/P(pct)",
                "high_calls_oi": "High Calls OI", "high_puts_oi": "High Puts OI"}
-        return {"format": fmt, "sort": "num_oi", "data": list(self.filtered_list.values()), "hidden":["time"]}
+        return {"format": fmt, "sort": "num_oi", "data": list(self.filtered_list.values()), "hidden":["time"], "description": self.DESCRIPTION}
 
 # EOF

@@ -20,6 +20,7 @@
 from abc import ABCMeta, abstractmethod
 
 class Screener (metaclass=ABCMeta):
+    DESCRIPTION = ""
     @abstractmethod
     def __init__ (self, name="", ticker_kind="ALL", interval=300):
         ''' 

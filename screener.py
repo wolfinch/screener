@@ -242,8 +242,10 @@ def get_sim_screener_data():
            "price_change": "% price", "cur_price_change": "% cur price",
            "vol_change": "% vol", "cur_vol_change": "% cur vol", "time": "time"}
     return {
-        "SIM-VOL-SPIKE-MEGACAP": {"format": fmt, "data": sim_tickers, "sort": "time"},
-        "SIM-VOL-SPIKE-SMALL": {"format": fmt, "data": sim_tickers_2, "sort": "time"}
+        "SIM-VOL-SPIKE-MEGACAP": {"format": fmt, "data": sim_tickers, "sort": "time",
+            "description": "Flags tickers whose current volume exceeds a configurable multiple of their 10-day average daily volume"},
+        "SIM-VOL-SPIKE-SMALL": {"format": fmt, "data": sim_tickers_2, "sort": "time",
+            "description": "Flags tickers whose current volume exceeds a configurable multiple of their 10-day average daily volume"}
     }
 
 def get_screener_data():

@@ -32,6 +32,7 @@ log.setLevel(log.DEBUG)
 MAX_SCREENED_TICKERS = 50
 
 class OPT_IV(Screener):
+    DESCRIPTION = "Screens options with high implied volatility near the money — candidates for premium-selling strategies"
     def __init__(self, name="OPT_IV", ticker_kind="ALL", interval=24*60*60, multiplier=1, options_data="", ticker_data="", notify=None, **kwarg):
         log.info("init: name: %s ticker_kind: %s interval: %d multiplier: %d data_src_name: %s" % (
             name, ticker_kind, interval, multiplier, options_data))
@@ -167,6 +168,6 @@ class OPT_IV(Screener):
         #              ]
         fmt = {"symbol": "Symbol", "time": "Time", "tpstk": "SP/STK",  "price": "Price",
                "ev": "EV", "iv": "IV", "oi": "OI", "expiry": "Expiry"}
-        return {"format": fmt, "sort": "oi", "data": list(self.filtered_list.values()), "hidden":["time"]}
+        return {"format": fmt, "sort": "oi", "data": list(self.filtered_list.values()), "hidden":["time"], "description": self.DESCRIPTION}
 
 # EOF
