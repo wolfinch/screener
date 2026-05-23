@@ -272,17 +272,13 @@
 			'#06b6d4','#ec4899','#f97316','#14b8a6','#a855f7'
 		];
 
-		function _chartRow(leftId, leftTitle, leftDot, rightId, rightTitle, rightDot, toggleKey) {
+		function _chartRow(leftId, leftTitle, leftDot, rightId, rightTitle, rightDot) {
 			return '<div class="chart-row">' +
 				'<div class="card chart-card"><div class="card-head"><div class="card-title">' +
 				'<span class="dot dot-' + leftDot + '"></span>' + leftTitle + '</div></div>' +
 				'<div class="chart-wrap"><canvas id="' + leftId + '"></canvas></div></div>' +
 				'<div class="card chart-card"><div class="card-head"><div class="card-title">' +
-				'<span class="dot dot-' + rightDot + '"></span>' + rightTitle + '</div>' +
-				'<label class="cp-toggle"><span class="cp-label">Calls</span>' +
-				'<input type="checkbox" data-key="' + toggleKey + '" onchange="flip_top_chart(this)">' +
-				'<span class="cp-slider"></span></label>' +
-				'</div>' +
+				'<span class="dot dot-' + rightDot + '"></span>' + rightTitle + '</div></div>' +
 				'<div class="chart-wrap"><canvas id="' + rightId + '"></canvas></div></div>' +
 				'</div>';
 		}
@@ -295,13 +291,16 @@
 				'<button class="period-btn' + (g_chart_period==='1w'?' period-active':'') + '" data-period="1w" onclick="setPeriod(\'1w\')">1W</button>' +
 				'<button class="period-btn' + (g_chart_period==='1m'?' period-active':'') + '" data-period="1m" onclick="setPeriod(\'1m\')">1M</button>' +
 				'<button class="period-btn' + (g_chart_period==='max'?' period-active':'') + '" data-period="max" onclick="setPeriod(\'max\')">Max</button>' +
+				'<label class="cp-toggle"><span class="cp-label">Calls</span>' +
+				'<input type="checkbox" onchange="flip_top_chart(this)">' +
+				'<span class="cp-slider"></span></label>' +
 				'</div>' +
 				_chartRow('chart-oi', sym + ' — Open Interest', 'cyan',
-				          'chart-oi-top', sym + ' — Top 10 OI by Strike', 'cyan', 'oi') +
+				          'chart-oi-top', sym + ' — Top 10 OI by Strike', 'cyan') +
 				_chartRow('chart-vol', sym + ' — Volume', 'green',
-				          'chart-vol-top', sym + ' — Top 10 Vol by Strike', 'green', 'vol') +
+				          'chart-vol-top', sym + ' — Top 10 Vol by Strike', 'green') +
 				_chartRow('chart-prem', sym + ' — Total Premium', 'yellow',
-				          'chart-prem-top', sym + ' — Top 10 Prem by Strike', 'yellow', 'prem')
+				          'chart-prem-top', sym + ' — Top 10 Prem by Strike', 'yellow')
 			);
 			$.ajax({
 				type: 'GET',
@@ -382,13 +381,14 @@
 
 		function flip_top_chart(el) {
 			if (!g_top_data) return;
-			var key = el.getAttribute('data-key');
 			var side = el.checked ? 'puts' : 'calls';
 			$(el).closest('.cp-toggle').find('.cp-label').text(el.checked ? 'Puts' : 'Calls');
-			var chartKey = key + '_top';
-			if (g_options_charts[chartKey]) { g_options_charts[chartKey].destroy(); }
-			g_options_charts[chartKey] = _makeTopChart(
-				'chart-' + key + '-top', g_top_data.dates, g_top_data[side], key);
+			['oi', 'vol', 'prem'].forEach(function(key) {
+				var chartKey = key + '_top';
+				if (g_options_charts[chartKey]) { g_options_charts[chartKey].destroy(); }
+				g_options_charts[chartKey] = _makeTopChart(
+					'chart-' + key + '-top', g_top_data.dates, g_top_data[side], key);
+			});
 		}
 
 		function render_options_charts(d) {

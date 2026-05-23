@@ -729,8 +729,12 @@ table.dataTable tbody tr:hover td {
 .period-bar {
 	display: flex;
 	justify-content: flex-end;
+	align-items: center;
 	gap: .3rem;
 	margin-bottom: .65rem;
+}
+.period-bar .cp-toggle {
+	margin-left: .6rem;
 }
 .period-btn {
 	padding: .22rem .6rem;
