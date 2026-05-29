@@ -553,6 +553,11 @@ table.dataTable tbody td {
 	font-size: .74rem;
 	vertical-align: middle;
 }
+table.dataTable tbody td.sorting_1,
+table.dataTable tbody td.sorting_2,
+table.dataTable tbody td.sorting_3 {
+	background: transparent !important;
+}
 
 table.dataTable tbody tr {
 	background: transparent !important;
